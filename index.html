@@ -63,7 +63,7 @@
     .hero-grid-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.2);
       z-index: 1;
     }
 
@@ -82,8 +82,15 @@
     }
 
     .hero-grid-name {
+      -webkit-text-stroke: 1px rgba(0,0,0,0.6);
+      paint-order: stroke fill;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5), -1px -1px 3px rgba(0,0,0,0.5);
+    }
+
+
+    .hero-grid-name {
       font-family: var(--font-disp);
-      font-size: clamp(36px, 10vw, 140px);
+      font-size: clamp(44px, 12vw, 160px);
       letter-spacing: 0.06em;
       line-height: 1;
       text-transform: uppercase;
@@ -93,13 +100,15 @@
     .hero-grid-sub {
       font-family: var(--font-cond);
       font-weight: 600;
-      font-size: clamp(11px, 3vw, 18px);
+      font-size: clamp(13px, 3.5vw, 22px);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: #fff;
       margin-top: 16px;
-      text-shadow: 0 1px 8px rgba(0,0,0,0.8);
       white-space: nowrap;
+      -webkit-text-stroke: 1px rgba(0,0,0,0.6);
+      paint-order: stroke fill;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5), -1px -1px 3px rgba(0,0,0,0.5);
     }
 
     .hero-grid-links {
@@ -121,6 +130,7 @@
       padding: 10px 16px;
       transition: background 0.2s, border-color 0.2s;
       white-space: nowrap;
+      background: rgba(255,255,255,0.15);
     }
 
     .hero-grid-links a:hover {
@@ -187,11 +197,6 @@
     <div class="hero-grid-text">
       <h1 class="hero-grid-name">Colin Peterman</h1>
       <p class="hero-grid-sub">Cincinnati &mdash; Photography &amp; Videography</p>
-      <div class="hero-grid-links">
-        <a href="sports.html">Sports</a>
-        <a href="licensing.html">Licensing</a>
-        <a href="#" onclick="openContactModal();return false;">Contact</a>
-      </div>
     </div>
   </div><!-- /hero-masonry-wrap -->
 

@@ -884,21 +884,28 @@ nav {
   .nav-links.open {
     display: flex;
     position: fixed;
-    top: var(--nav-h); left: 0; right: 0;
-    background: var(--bg);
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    padding: 16px 0;
+    top: var(--nav-h); left: 0; right: 0; bottom: 0;
+    background: var(--bg-dark);
+    z-index: 999;
+    padding: 24px 0;
+    align-items: center;
+    justify-content: center;
   }
   .gallery-nav .nav-links.open,
-  .hero-page .nav-links.open { background: var(--bg-dark); border-color: rgba(255,255,255,0.1); }
+  .hero-page .nav-links.open { background: var(--bg-dark); }
   .hero-page .nav-links.open a { color: #fff; }
   .nav-links a {
     display: block;
-    padding: 18px 28px;
-    font-size: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 20px 40px;
+    font-family: var(--font-disp);
+    font-size: 36px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    border: none;
+    text-align: center;
   }
-  .nav-links a:hover { background: rgba(255,255,255,0.06); }
+  .nav-links a:hover { opacity: 0.6; }
   .nav-toggle { display: flex; }
 
   /* Home sections stack vertically on mobile */
