@@ -92,6 +92,7 @@
       photos.forEach((filename, i) => {
         const item = document.createElement('div');
         item.className = 'masonry-item';
+        item.style.animationDelay = `${(i % 5) * 80}ms`;
         item.onclick = () => openLightbox(i);
 
         const img = document.createElement('img');

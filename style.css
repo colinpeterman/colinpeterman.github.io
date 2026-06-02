@@ -14,7 +14,7 @@
   --font-disp: 'Bebas Neue', sans-serif;
   --font-body: 'Barlow', sans-serif;
   --font-cond: 'Barlow Condensed', sans-serif;
-  --gap:       3px;
+  --gap:       0px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -362,6 +362,28 @@ nav {
 .masonry-item img.lazy { opacity: 0; transition: opacity 0.6s ease; }
 .masonry-item img.loaded { opacity: 0.9; }
 .masonry-item:hover img.loaded { opacity: 1; }
+
+/* Portrait crop — forces landscape photos into a tall frame */
+.masonry-item.portrait {
+  aspect-ratio: 3 / 4;
+}
+.masonry-item.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* Stagger fade-in on load */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.masonry-item {
+  opacity: 0;
+  animation: fadeUp 0.5s ease forwards;
+}
+.masonry-item img.loaded { opacity: 0.9; }
 
 /* Gallery empty state */
 .gallery-empty {
@@ -714,12 +736,16 @@ nav {
     border-bottom: 1px solid rgba(0,0,0,0.1);
     padding: 16px 0;
   }
-  .gallery-nav .nav-links.open { background: var(--bg-dark); border-color: rgba(255,255,255,0.1); }
+  .gallery-nav .nav-links.open,
+  .hero-page .nav-links.open { background: var(--bg-dark); border-color: rgba(255,255,255,0.1); }
+  .hero-page .nav-links.open a { color: #fff; }
   .nav-links a {
     display: block;
-    padding: 14px 28px;
-    font-size: 14px;
+    padding: 18px 28px;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
   }
+  .nav-links a:hover { background: rgba(255,255,255,0.06); }
   .nav-toggle { display: flex; }
 
   /* Home sections stack vertically on mobile */
