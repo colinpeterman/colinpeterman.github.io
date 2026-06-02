@@ -10,7 +10,7 @@
   --text:      #0d0d0d;
   --text-light:#ffffff;
   --accent:    #0d0d0d;
-  --nav-h:     60px;
+  --nav-h:     80px;
   --font-disp: 'Bebas Neue', sans-serif;
   --font-body: 'Barlow', sans-serif;
   --font-cond: 'Barlow Condensed', sans-serif;
@@ -51,21 +51,21 @@ nav {
 .nav-logo {
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .nav-links {
   display: flex;
-  gap: 36px;
+  gap: 40px;
   list-style: none;
 }
 
 .nav-links a {
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   position: relative;
@@ -120,7 +120,7 @@ nav {
 .hero-img {
   position: absolute;
   inset: 0;
-  opacity: 0.72;
+  opacity: 1;
   animation: heroZoom 18s ease-in-out infinite alternate;
 }
 
@@ -160,7 +160,7 @@ nav {
 
 .home-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 45% 55%;
   border-top: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -170,8 +170,8 @@ nav {
 .home-section-img {
   overflow: hidden;
   background: #ddd;
-  aspect-ratio: 3/4;
-  max-height: 600px;
+  aspect-ratio: 4/5;
+  max-height: 520px;
 }
 
 .home-section-img img {
@@ -189,7 +189,7 @@ nav {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 60px 40px;
+  padding: 80px 60px;
   gap: 20px;
 }
 
