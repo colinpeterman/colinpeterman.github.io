@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phantom Photos | Colin Peterman</title>
+  <meta name="description" content="Colin Peterman | Cincinnati Based Photographer and Videographer" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">Phantom Photos</a>
+    <button class="nav-toggle" aria-label="Toggle menu" onclick="toggleNav(this)">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="sports.html">Sports</a></li>
+      <li><a href="licensing.html">Licensing</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-img">
+        <!--
+          HERO IMAGE SETUP:
+          Replace the placeholder below with your own hero image.
+          Save it as: images/hero.jpg
+          Then replace this entire placeholder div with:
+          <img src="images/hero.jpg" alt="Colin Peterman Photography" />
+        -->
+        <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a1a18 0%,#2d2d2a 40%,#1a1a18 100%);"></div>
+      </div>
+      <div class="hero-text">
+        <h1 class="hero-name">Colin<br>Peterman</h1>
+      </div>
+    </section>
+
+    <!-- SPORTS SECTION -->
+    <section class="home-sections">
+      <div class="home-section">
+        <div class="home-section-img">
+          <!--
+            SPORTS PREVIEW IMAGE:
+            Save a preview image as: images/home-sports.jpg
+            Then replace the placeholder div below with:
+            <img src="images/home-sports.jpg" alt="Sports Photography" />
+          -->
+          <div style="width:100%;height:100%;min-height:520px;background:linear-gradient(160deg,#1c1c1a,#2e2e2c);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Bebas Neue',sans-serif;color:rgba(255,255,255,0.08);font-size:80px;letter-spacing:0.1em;">SPORTS</span>
+          </div>
+        </div>
+        <div class="home-section-text">
+          <h2>Sports<br>Photography</h2>
+          <p>Cincinnati-based sports photography covering professional, collegiate, and local athletics. Capturing the energy, emotion, and decisive moments of the game.</p>
+          <a href="sports.html" class="btn-outline">View Series →</a>
+        </div>
+      </div>
+
+      <div class="home-section reverse">
+        <div class="home-section-img">
+          <!--
+            LICENSING PREVIEW IMAGE:
+            Save a preview image as: images/home-licensing.jpg
+            Then replace the placeholder div below with:
+            <img src="images/home-licensing.jpg" alt="Image Licensing" />
+          -->
+          <div style="width:100%;height:100%;min-height:520px;background:linear-gradient(160deg,#2a2a28,#1a1a18);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Bebas Neue',sans-serif;color:rgba(255,255,255,0.08);font-size:80px;letter-spacing:0.1em;">LICENSE</span>
+          </div>
+        </div>
+        <div class="home-section-text">
+          <h2>Image<br>Licensing</h2>
+          <p>Browse the full licensing collection. Commercial, editorial, and personal use available. Contact to discuss usage rights and pricing.</p>
+          <a href="licensing.html" class="btn-outline">Browse Collection →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-brand">Phantom Photos</div>
+      <div class="footer-social">
+        <a href="https://www.instagram.com/phantomphotos_/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://twitter.com/phantomphotos_" target="_blank" rel="noopener">Twitter</a>
+        <a href="mailto:colinpeterman@gmail.com">Email</a>
+      </div>
+      <div class="footer-copy">&copy; <span id="year"></span> Colin Peterman. All rights reserved.</div>
+    </footer>
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    function toggleNav(btn) {
+      const links = document.getElementById('nav-links');
+      links.classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>

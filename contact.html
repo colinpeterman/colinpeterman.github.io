@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact | Phantom Photos</title>
+  <meta name="description" content="Contact Colin Peterman — Phantom Photos" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="contact-page">
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">Phantom Photos</a>
+    <button class="nav-toggle" aria-label="Toggle menu" onclick="toggleNav(this)">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="sports.html">Sports</a></li>
+      <li><a href="licensing.html">Licensing</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- HERO -->
+    <div class="contact-hero">
+      <!--
+        CONTACT HERO IMAGE:
+        Save a background image as: images/contact-bg.jpg
+        Then replace the div below with:
+        <img src="images/contact-bg.jpg" alt="" />
+      -->
+      <div style="width:100%;height:100%;background:linear-gradient(160deg,#c8cfc8,#a8b5a8);"></div>
+      <div class="contact-title">
+        <h1>Contact</h1>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="contact-body">
+
+      <div class="form-success" id="form-success">
+        <h3>Message Sent</h3>
+        <p>Thanks for reaching out — I'll be in touch soon.</p>
+      </div>
+
+      <!--
+        FORMSPREE SETUP (free, takes 2 min):
+        1. Go to https://formspree.io and create a free account
+        2. Create a new form — it gives you a URL like https://formspree.io/f/xabc1234
+        3. Replace YOUR_FORMSPREE_ID below with that ID (just the xabc1234 part)
+      -->
+      <form
+        class="contact-form"
+        id="contact-form"
+        action="https://formspree.io/f/YOUR_FORMSPREE_ID"
+        method="POST"
+      >
+        <!-- Redirect back to contact page after submit -->
+        <input type="hidden" name="_next" value="https://www.colinpeterman.com/contact.html?sent=1" />
+        <input type="hidden" name="_subject" value="New message from colinpeterman.com" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="first-name">First Name</label>
+            <input type="text" id="first-name" name="first_name" required />
+          </div>
+          <div class="form-group">
+            <label for="last-name">Last Name</label>
+            <input type="text" id="last-name" name="last_name" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" />
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" required></textarea>
+        </div>
+
+        <button type="submit" class="contact-submit">Submit</button>
+      </form>
+
+      <!-- Social links -->
+      <div class="contact-social">
+        <a href="https://www.instagram.com/phantomphotos_/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://twitter.com/phantomphotos_" target="_blank" rel="noopener">Twitter</a>
+        <a href="mailto:colinpeterman@gmail.com">colinpeterman@gmail.com</a>
+      </div>
+
+    </div><!-- /contact-body -->
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-brand">Phantom Photos</div>
+      <div class="footer-social">
+        <a href="https://www.instagram.com/phantomphotos_/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://twitter.com/phantomphotos_" target="_blank" rel="noopener">Twitter</a>
+        <a href="mailto:colinpeterman@gmail.com">Email</a>
+      </div>
+      <div class="footer-copy">&copy; <span id="year"></span> Colin Peterman. All rights reserved.</div>
+    </footer>
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Show success message if redirected back after Formspree submit
+    if (window.location.search.includes('sent=1')) {
+      document.getElementById('contact-form').style.display = 'none';
+      document.getElementById('form-success').style.display = 'block';
+    }
+
+    // Optional: AJAX submission (keeps user on page)
+    const form = document.getElementById('contact-form');
+    form.addEventListener('submit', async function(e) {
+      // Only intercept if Formspree ID has been set
+      const action = form.action;
+      if (action.includes('YOUR_FORMSPREE_ID')) return; // Fall through to normal submit
+
+      e.preventDefault();
+      const data = new FormData(form);
+      const btn = form.querySelector('button[type="submit"]');
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+
+      try {
+        const resp = await fetch(action, {
+          method: 'POST',
+          body: data,
+          headers: { 'Accept': 'application/json' }
+        });
+        if (resp.ok) {
+          form.style.display = 'none';
+          document.getElementById('form-success').style.display = 'block';
+        } else {
+          btn.textContent = 'Submit';
+          btn.disabled = false;
+          alert('Something went wrong. Please try emailing directly at colinpeterman@gmail.com');
+        }
+      } catch {
+        btn.textContent = 'Submit';
+        btn.disabled = false;
+        alert('Something went wrong. Please try emailing directly at colinpeterman@gmail.com');
+      }
+    });
+
+    function toggleNav(btn) {
+      document.getElementById('nav-links').classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
