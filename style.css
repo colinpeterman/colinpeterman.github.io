@@ -80,7 +80,7 @@ nav {
   position: absolute;
   bottom: -2px; left: 0; right: 0;
   height: 1px;
-  background: var(--text);
+  background: currentColor;
 }
 
 /* Mobile hamburger */
