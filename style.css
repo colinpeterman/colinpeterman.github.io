@@ -161,7 +161,6 @@ nav {
 .home-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 520px;
   border-top: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -169,12 +168,17 @@ nav {
 .home-section.reverse > * { direction: ltr; }
 
 .home-section-img {
-  aspect-ratio: unset;
   overflow: hidden;
   background: #ddd;
+  aspect-ratio: 3/4;
+  max-height: 600px;
 }
 
 .home-section-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
   transition: transform 0.7s ease;
 }
 .home-section-img:hover img { transform: scale(1.03); }
@@ -182,23 +186,25 @@ nav {
 .home-section-text {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 60px 64px;
-  gap: 20px;
+  text-align: center;
+  padding: 60px 40px;
+  gap: 16px;
 }
 
 .home-section-text h2 {
   font-family: var(--font-disp);
-  font-size: clamp(42px, 5vw, 72px);
-  letter-spacing: 0.04em;
-  line-height: 1;
+  font-size: clamp(32px, 4vw, 56px);
+  letter-spacing: 0.06em;
+  line-height: 1.05;
 }
 
 .home-section-text p {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.65;
-  color: #444;
-  max-width: 380px;
+  color: #555;
+  max-width: 320px;
 }
 
 .btn-outline {
@@ -211,7 +217,6 @@ nav {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   transition: background 0.2s, color 0.2s;
-  align-self: flex-start;
   margin-top: 8px;
 }
 .btn-outline:hover { background: var(--text); color: var(--text-light); }
@@ -679,10 +684,32 @@ nav {
   }
   .nav-toggle { display: flex; }
 
-  .home-section { grid-template-columns: 1fr; min-height: unset; }
+  /* Home sections stack vertically on mobile */
+  .home-section {
+    grid-template-columns: 1fr;
+  }
   .home-section.reverse { direction: ltr; }
-  .home-section-img { aspect-ratio: 4/3; }
-  .home-section-text { padding: 40px 28px; }
+
+  /* Image goes full width, portrait crop */
+  .home-section-img {
+    aspect-ratio: 4/3;
+    max-height: 340px;
+  }
+
+  /* Text section compact on mobile */
+  .home-section-text {
+    padding: 40px 24px;
+    gap: 14px;
+  }
+
+  .home-section-text h2 {
+    font-size: 36px;
+  }
+
+  /* Hero name smaller on mobile */
+  .hero-name {
+    font-size: clamp(52px, 18vw, 120px);
+  }
 
   .form-row { grid-template-columns: 1fr; }
   .contact-hero { height: 44vh; }
