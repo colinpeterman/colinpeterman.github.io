@@ -38,11 +38,14 @@
       display: block;
       width: 100%;
       height: auto;
-      opacity: 0;
-      transition: opacity 0.6s ease;
     }
 
-    .hero-masonry-item img.loaded { opacity: 1; }
+    /* Whole masonry fades in together */
+    .hero-masonry {
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .hero-masonry.ready { opacity: 1; }
 
     /* Dark overlay over the masonry */
     .hero-grid-overlay {
@@ -223,13 +226,19 @@
     }
 
     const masonry = document.getElementById('hero-masonry');
+    let loadedCount = 0;
+    const threshold = 8;
+
     mainPhotos.forEach(filename => {
       const item = document.createElement('div');
       item.className = 'hero-masonry-item';
       const img = document.createElement('img');
       img.alt = '';
       img.src = `images/main/${filename}`;
-      img.onload = () => img.classList.add('loaded');
+      img.onload = () => {
+        loadedCount++;
+        if (loadedCount >= threshold) masonry.classList.add('ready');
+      };
       item.appendChild(img);
       masonry.appendChild(item);
     });

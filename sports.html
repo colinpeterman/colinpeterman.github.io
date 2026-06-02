@@ -88,23 +88,27 @@
     function renderGallery() {
       const grid = document.getElementById('gallery');
       grid.innerHTML = '';
+      let loadedCount = 0;
+      const threshold = 12;
 
       photos.forEach((filename, i) => {
         const item = document.createElement('div');
         item.className = 'masonry-item';
-        item.style.animationDelay = `${(i % 5) * 80}ms`;
         item.onclick = () => openLightbox(i);
 
         const img = document.createElement('img');
         img.alt = `Sports photo ${i + 1}`;
         img.className = 'lazy';
 
-        // Use IntersectionObserver for lazy loading
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
               img.src = `images/sports/${filename}`;
-              img.onload = () => img.classList.add('loaded');
+              img.onload = () => {
+                img.classList.add('loaded');
+                loadedCount++;
+                if (loadedCount >= threshold) grid.classList.add('ready');
+              };
               img.onerror = () => { img.src = ''; img.style.minHeight = '200px'; };
               observer.unobserve(img);
             }

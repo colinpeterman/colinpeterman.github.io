@@ -374,16 +374,12 @@ nav {
   object-position: center center;
 }
 
-/* Stagger fade-in on load */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.masonry-item {
+/* Grid fades in as a whole once ready */
+.masonry-grid {
   opacity: 0;
-  animation: fadeUp 0.5s ease forwards;
+  transition: opacity 0.8s ease;
 }
-.masonry-item img.loaded { opacity: 0.9; }
+.masonry-grid.ready { opacity: 1; }
 
 /* Gallery empty state */
 .gallery-empty {
