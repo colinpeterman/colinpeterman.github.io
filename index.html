@@ -83,10 +83,11 @@
 
     .hero-grid-name {
       font-family: var(--font-disp);
-      font-size: clamp(64px, 12vw, 140px);
+      font-size: clamp(36px, 10vw, 140px);
       letter-spacing: 0.06em;
       line-height: 1;
       text-transform: uppercase;
+      white-space: nowrap;
     }
 
     .hero-grid-sub {
@@ -102,8 +103,11 @@
 
     .hero-grid-links {
       display: flex;
-      gap: 20px;
+      gap: 12px;
       margin-top: 40px;
+      padding: 0 24px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .hero-grid-links a {
