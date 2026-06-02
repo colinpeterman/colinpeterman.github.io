@@ -1,3 +1,8 @@
+// Disable right-click on images
+document.addEventListener('contextmenu', e => {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
+
 // Contact Modal — shared across all pages
 (function () {
   // Inject modal HTML

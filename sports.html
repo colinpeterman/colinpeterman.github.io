@@ -3,8 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sports | Phantom Photos</title>
-  <meta name="description" content="Sports Photography by Colin Peterman — Phantom Photos" />
+  <title>Sports Photography | Phantom Photos</title>
+  <meta name="description" content="Sports photography by Colin Peterman — NFL, MLS, college sports and more." />
+  <link rel="icon" type="image/jpeg" href="images/favicon/DSC05981-Enhanced-NR.jpg" />
+  <meta property="og:title" content="Sports Photography | Phantom Photos" />
+  <meta property="og:description" content="Sports photography by Colin Peterman — NFL, MLS, college sports and more." />
+  <meta property="og:image" content="https://www.colinpeterman.com/images/main/DSC08553.jpg" />
+  <meta property="og:url" content="https://www.colinpeterman.com/sports.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://www.colinpeterman.com/images/main/DSC08553.jpg" />
   <link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body class="gallery-page">
@@ -94,7 +102,7 @@
       photos.forEach((filename, i) => {
         const item = document.createElement('div');
         item.className = 'masonry-item';
-        item.onclick = () => openLightbox(i);
+        
 
         const img = document.createElement('img');
         img.alt = `Sports photo ${i + 1}`;

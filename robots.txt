@@ -1,0 +1,33 @@
+# robots.txt — colinpeterman.com
+
+# Allow all standard search engines
+User-agent: *
+Allow: /
+Disallow: /images/licensing/
+
+# Block AI training crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+Sitemap: https://www.colinpeterman.com/sitemap.xml

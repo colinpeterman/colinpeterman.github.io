@@ -28,8 +28,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+
 a { text-decoration: none; color: inherit; }
-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
+.masonry-item img { pointer-events: none; }
 
 /* ========================================
    NAV
@@ -343,7 +345,7 @@ nav {
   break-inside: avoid;
   margin-bottom: var(--gap);
   overflow: hidden;
-  cursor: pointer;
+  cursor: default;
   position: relative;
   background: #1a1a18;
 }
