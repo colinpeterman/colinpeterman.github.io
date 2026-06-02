@@ -261,16 +261,16 @@ nav {
 
 .site-footer {
   border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 40px 28px;
-  display: flex;
-  flex-direction: column;
+  padding: 24px 40px;
+  display: grid;
+  grid-template-columns: 1fr;
   align-items: center;
-  gap: 18px;
   background: var(--bg-dark);
 }
-.site-footer .footer-brand { color: var(--text-light); }
+.site-footer .footer-brand { color: var(--text-light); justify-self: start; }
+.site-footer .footer-social { justify-self: center; }
 .site-footer .footer-social a { color: var(--text-light); }
-.site-footer .footer-copy { color: rgba(255,255,255,0.3); }
+.site-footer .footer-copy { color: rgba(255,255,255,0.3); justify-self: end; font-size: 11px; letter-spacing: 0.05em; }
 
 .footer-brand {
   font-family: var(--font-body);
@@ -400,16 +400,16 @@ nav {
 /* Gallery footer */
 .gallery-footer {
   border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 40px 28px;
-  display: flex;
-  flex-direction: column;
+  padding: 24px 40px;
+  display: grid;
+  grid-template-columns: 1fr;
   align-items: center;
-  gap: 18px;
   background: var(--bg-dark);
 }
-.gallery-footer .footer-brand { color: var(--text-light); }
+.gallery-footer .footer-brand { color: var(--text-light); justify-self: start; }
+.gallery-footer .footer-social { justify-self: center; }
 .gallery-footer .footer-social a { color: var(--text-light); }
-.gallery-footer .footer-copy { color: rgba(255,255,255,0.3); }
+.gallery-footer .footer-copy { color: rgba(255,255,255,0.3); justify-self: end; font-size: 11px; letter-spacing: 0.05em; }
 
 /* ========================================
    LIGHTBOX
@@ -864,6 +864,18 @@ nav {
 /* ========================================
    RESPONSIVE
    ======================================== */
+
+@media (max-width: 600px) {
+  .site-footer,
+  .gallery-footer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 14px;
+    padding: 28px 24px;
+  }
+  .site-footer .footer-copy,
+  .gallery-footer .footer-copy { justify-self: center; }
+}
 
 @media (max-width: 768px) {
   .nav-links { display: none; flex-direction: column; gap: 0; }

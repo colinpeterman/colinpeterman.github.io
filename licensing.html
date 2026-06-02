@@ -51,7 +51,7 @@
     </div>
 
     <footer class="gallery-footer">
-      <div class="footer-brand">Phantom Photos</div>
+      
       <div class="footer-social">
         <a href="https://www.instagram.com/phantomphotos_/" target="_blank" rel="noopener" aria-label="Instagram">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -63,7 +63,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
         </a>
       </div>
-      <div class="footer-copy">&copy; <span id="year"></span> Colin Peterman. All rights reserved.</div>
+      
     </footer>
   </div>
 
@@ -79,26 +79,26 @@
   </div>
 
   <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
+    
 
-    // ============================================================
-    // PASSWORD — Change this to your real password when ready
-    // ============================================================
-    const CORRECT_PASSWORD = 'Studio22';
-    // ============================================================
-
+    const HASH = 'e94918e0c6efb70bae593a93557e0bfcf78568cac4e51df7d3e5af5759e29b4d';
     const SESSION_KEY = 'pp_licensing_unlocked';
 
-    // Check if already unlocked this session
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
     if (sessionStorage.getItem(SESSION_KEY) === '1') {
       unlockGallery();
     }
 
-    function checkPassword() {
+    async function checkPassword() {
       const input = document.getElementById('pw-input').value.trim();
       const errEl = document.getElementById('pw-error');
+      const hashed = await sha256(input);
 
-      if (input === CORRECT_PASSWORD) {
+      if (hashed === HASH) {
         sessionStorage.setItem(SESSION_KEY, '1');
         errEl.textContent = '';
         document.getElementById('pw-gate').style.opacity = '0';
@@ -107,7 +107,6 @@
         errEl.textContent = 'Incorrect password. Please try again.';
         document.getElementById('pw-input').value = '';
         document.getElementById('pw-input').focus();
-        // Shake animation
         const gate = document.getElementById('pw-gate');
         gate.style.animation = 'none';
         setTimeout(() => gate.style.animation = '', 10);
