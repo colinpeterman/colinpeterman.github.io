@@ -260,14 +260,17 @@ nav {
    ======================================== */
 
 .site-footer {
-  border-top: 1px solid rgba(0,0,0,0.1);
+  border-top: 1px solid rgba(255,255,255,0.08);
   padding: 40px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  background: var(--bg);
+  background: var(--bg-dark);
 }
+.site-footer .footer-brand { color: var(--text-light); }
+.site-footer .footer-social a { color: var(--text-light); }
+.site-footer .footer-copy { color: rgba(255,255,255,0.3); }
 
 .footer-brand {
   font-family: var(--font-body);
