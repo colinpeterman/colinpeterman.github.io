@@ -731,9 +731,8 @@ nav {
 
   .home-section-img img {
     max-width: 100%;
-    max-height: 300px;
-    object-fit: cover;
-    object-position: center top;
+    height: auto;
+    object-fit: contain;
   }
 
   .home-section-text {
@@ -742,9 +741,11 @@ nav {
     text-align: center;
   }
 
-  /* Hero name smaller on mobile */
+  /* Hero name single line on mobile */
   .hero-name {
-    font-size: clamp(52px, 18vw, 120px);
+    font-size: clamp(28px, 8vw, 56px);
+    white-space: nowrap;
+    letter-spacing: 0.06em;
   }
 
   .form-row { grid-template-columns: 1fr; }
