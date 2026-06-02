@@ -251,13 +251,23 @@
       item.className = 'hero-masonry-item';
       const img = document.createElement('img');
       img.alt = '';
-      img.src = `images/main/${filename}`;
-      img.onload = () => {
-        loadedCount++;
-        if (loadedCount >= threshold) masonry.classList.add('ready');
-      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            img.src = `images/main/${filename}`;
+            img.onload = () => {
+              loadedCount++;
+              if (loadedCount >= threshold) masonry.classList.add('ready');
+            };
+            observer.unobserve(img);
+          }
+        });
+      }, { rootMargin: '100px' });
+
       item.appendChild(img);
       masonry.appendChild(item);
+      observer.observe(img);
     });
   </script>
 
