@@ -70,6 +70,10 @@
     fetch('data/sports.json')
       .then(r => r.ok ? r.json() : [])
       .then(list => {
+        for (let i = list.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [list[i], list[j]] = [list[j], list[i]];
+        }
         photos = list;
         if (!photos.length) {
           document.getElementById('empty-state').style.display = 'block';
