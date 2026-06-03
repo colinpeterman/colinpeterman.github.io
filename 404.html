@@ -30,6 +30,11 @@
   </div>
 
   <script>
+    function closeNav() {
+      document.getElementById('nav-links').classList.remove('open');
+      document.querySelector('nav').classList.remove('menu-open');
+    }
+
     function toggleNav(btn) {
       document.getElementById('nav-links').classList.toggle('open');
       document.querySelector('nav').classList.toggle('menu-open');

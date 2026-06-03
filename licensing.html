@@ -27,7 +27,7 @@
       <li><a href="index.html">Home</a></li>
       <li><a href="sports.html">Sports</a></li>
       <li><a href="licensing.html" class="active">Licensing</a></li>
-      <li><a href="#" onclick="openContactModal();return false;">Contact</a></li>
+      <li><a href="#" onclick="closeNav();openContactModal();return false;">Contact</a></li>
     </ul>
   </nav>
 
@@ -222,6 +222,11 @@
     document.getElementById('lightbox').addEventListener('click', e => {
       if (e.target === e.currentTarget) closeLightbox();
     });
+
+    function closeNav() {
+      document.getElementById("nav-links").classList.remove("open");
+      document.querySelector("nav").classList.remove("menu-open");
+    }
 
     function toggleNav(btn) {
       document.getElementById('nav-links').classList.toggle('open');

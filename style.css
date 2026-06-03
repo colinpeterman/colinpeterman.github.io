@@ -968,13 +968,14 @@ nav {
     padding: 24px 0;
     align-items: center;
     justify-content: center;
+    gap: 4px;
   }
   .gallery-nav .nav-links.open,
   .hero-page .nav-links.open { background: var(--bg-dark); }
   .hero-page .nav-links.open a { color: #fff; }
   .nav-links a {
     display: block;
-    padding: 20px 40px;
+    padding: 12px 40px;
     font-family: var(--font-disp);
     font-size: 36px;
     letter-spacing: 0.08em;
@@ -984,6 +985,8 @@ nav {
     text-align: center;
   }
   .nav-links a:hover { opacity: 0.6; }
+  .nav-links a.active::after,
+  .nav-links a:hover::after { display: none; }
   .nav-toggle { display: flex; }
   nav.menu-open, .gallery-nav.menu-open { z-index: 10000; }
 
