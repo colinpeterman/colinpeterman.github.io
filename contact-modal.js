@@ -69,6 +69,13 @@ document.addEventListener('contextmenu', e => {
       if (resp.ok) {
         form.style.display = 'none';
         document.getElementById('cm-success').style.display = 'block';
+        // Clear licensing inquiry cart after successful send
+        if (typeof inquirySet !== 'undefined') {
+          inquirySet.clear();
+          if (typeof saveInquiry === 'function') saveInquiry();
+          if (typeof updateCart === 'function') updateCart();
+          document.querySelectorAll('.masonry-item.selected').forEach(el => el.classList.remove('selected'));
+        }
       } else {
         btn.textContent = 'Send Message';
         btn.disabled = false;
@@ -87,7 +94,7 @@ document.addEventListener('contextmenu', e => {
   });
 })();
 
-function openContactModal() {
+function openContactModal(subject) {
   const modal = document.getElementById('contact-modal');
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -99,6 +106,13 @@ function openContactModal() {
   success.style.display = 'none';
   btn.textContent = 'Send Message';
   btn.disabled = false;
+  // Optional custom subject (e.g. "Licensing Inquiry")
+  const subjectField = form.querySelector('input[name="_subject"]');
+  if (subjectField) {
+    subjectField.value = subject
+      ? `${subject} — colinpeterman.com`
+      : 'New message from colinpeterman.com';
+  }
 }
 
 function closeContactModal() {

@@ -13,7 +13,7 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://www.colinpeterman.com/images/main/DSC08553.jpg" />
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body class="gallery-page">
 
@@ -114,6 +114,7 @@
         img.className = 'lazy';
         img.src = `images/sports/${filename}`;
         img.onload = () => {
+          img.classList.remove('lazy');
           img.classList.add('loaded');
           loadedCount++;
           if (loadedCount >= threshold) grid.classList.add('ready');

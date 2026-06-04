@@ -33,13 +33,6 @@ a { text-decoration: none; color: inherit; }
 img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
 .masonry-item img { pointer-events: none; }
 .masonry-item { user-select: none; -webkit-user-select: none; }
-.masonry-item::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: rgba(0,0,0,0.001);
-}
 
 /* ========================================
    NAV
@@ -361,16 +354,11 @@ nav {
   display: block;
   width: 100%;
   height: auto;
-  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              opacity  0.45s ease;
-  opacity: 0.9;
 }
-.masonry-item:hover img { transform: scale(1.04); opacity: 1; }
 
 /* Loading state */
 .masonry-item img.lazy { opacity: 0; transition: opacity 0.6s ease; }
-.masonry-item img.loaded { opacity: 0.9; }
-.masonry-item:hover img.loaded { opacity: 1; }
+.masonry-item img.loaded { opacity: 1; }
 
 /* Portrait crop — forces landscape photos into a tall frame */
 .masonry-item.portrait {

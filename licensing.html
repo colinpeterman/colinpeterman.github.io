@@ -13,7 +13,7 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://www.colinpeterman.com/images/main/DSC08553.jpg" />
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body class="gallery-page">
 
@@ -85,8 +85,193 @@
       <img id="lb-img" src="" alt="Photo" />
     </div>
     <button class="lb-btn lb-next" onclick="lbNext()" aria-label="Next">&#8250;</button>
-    <div class="lb-counter" id="lb-counter"></div>
+    <!-- Bottom action bar -->
+    <div class="lb-action-bar">
+      <span class="lb-counter" id="lb-counter"></span>
+      <button class="lb-inquire-btn" id="lb-inquire-btn" onclick="toggleInquiry()">
+        <svg id="lb-inquire-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span id="lb-inquire-label">Add to Inquiry</span>
+      </button>
+    </div>
   </div>
+
+  <!-- FLOATING INQUIRY CONTROLS -->
+  <div class="inquiry-controls" id="inquiry-controls">
+    <button class="inquiry-filter-btn" id="inquiry-filter-btn" onclick="toggleSelectionFilter()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h22M5 12h14M9 18h6"/></svg>
+      <span id="inquiry-filter-label">View Selection</span>
+    </button>
+    <button class="inquiry-cart" id="inquiry-cart" onclick="submitInquiry()">
+      <span class="inquiry-cart-badge" id="inquiry-cart-badge">0</span>
+      <span id="inquiry-cart-label">Inquire about 0 photos</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+
+  <style>
+    /* Lightbox image — leave room for action bar */
+    #lightbox .lightbox-img-wrap img {
+      max-height: 78vh;
+    }
+
+    /* Bottom action bar */
+    .lb-action-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 9002;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px calc(14px + env(safe-area-inset-bottom, 0px)) 28px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Override global lb-counter positioning */
+    .lb-action-bar .lb-counter {
+      position: static;
+      transform: none;
+      left: auto; bottom: auto;
+      color: rgba(255,255,255,0.45);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+    }
+
+    .lb-inquire-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      font-family: var(--font-cond);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 9px 18px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .lb-inquire-btn:hover {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.5);
+    }
+    .lb-inquire-btn.added {
+      background: #fff;
+      color: #111;
+      border-color: #fff;
+    }
+    .lb-inquire-btn.added:hover { background: rgba(255,255,255,0.88); }
+
+    /* Thumbnail checkbox overlay */
+    .masonry-item .masonry-select-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      z-index: 3;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.7);
+      background: rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: transparent;
+      cursor: pointer;
+    }
+    .masonry-item.selected .masonry-select-badge {
+      background: #fff;
+      border-color: #fff;
+      color: #111;
+    }
+    /* Extend touch target without affecting visual */
+    .masonry-item .masonry-select-badge::after {
+      content: '';
+      position: absolute;
+      inset: -10px;
+    }
+
+    /* Floating cart container */
+    /* Floating controls wrapper */
+    .inquiry-controls {
+      display: none;
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      right: 24px;
+      z-index: 10001;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .inquiry-controls.visible { display: flex; }
+    .inquiry-controls.lb-open { bottom: 80px; }
+
+    /* View Selection toggle */
+    .inquiry-filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      color: #111;
+      border: none;
+      font-family: var(--font-cond);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 9px 14px;
+      border-radius: 100px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      white-space: nowrap;
+    }
+    .inquiry-filter-btn:hover { background: #f0f0f0; }
+
+    /* Filter active — hide non-selected items */
+    .masonry-grid.filter-active .masonry-item:not(.selected) {
+      display: none;
+    }
+
+    /* Floating cart pill */
+    .inquiry-cart {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      color: #111;
+      font-family: var(--font-cond);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 12px 18px 12px 8px;
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .inquiry-cart:hover { background: #f0f0f0; }
+
+    .inquiry-cart-badge {
+      background: #111;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+  </style>
 
   <script>
     
@@ -99,9 +284,19 @@
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
+    // Inquiry cart — persisted in sessionStorage
+    const INQUIRY_KEY = 'pp_inquiry';
+    const inquirySet = new Set(JSON.parse(sessionStorage.getItem(INQUIRY_KEY) || '[]'));
+    function saveInquiry() {
+      sessionStorage.setItem(INQUIRY_KEY, JSON.stringify([...inquirySet]));
+    }
+
     if (sessionStorage.getItem(SESSION_KEY) === '1') {
       unlockGallery();
     }
+
+    // Restore cart visibility if items were saved
+    if (inquirySet.size > 0) updateCart();
 
     async function checkPassword() {
       const input = document.getElementById('pw-input').value.trim();
@@ -152,11 +347,27 @@
     function renderGallery() {
       const grid = document.getElementById('gallery');
       grid.innerHTML = '';
+      let loadedCount = 0;
+      const threshold = 12;
 
       photos.forEach((photo, i) => {
         const filename = photo.file || photo;
         const item = document.createElement('div');
         item.className = 'masonry-item';
+        item.dataset.filename = filename;
+        if (inquirySet.has(filename)) item.classList.add('selected');
+        item.style.cursor = 'pointer';
+        item.onclick = () => openLightbox(i);
+
+        const badge = document.createElement('div');
+        badge.className = 'masonry-select-badge';
+        badge.textContent = '✓';
+        badge.title = 'Add to inquiry';
+        badge.addEventListener('click', e => {
+          e.stopPropagation();
+          toggleInquiryByFilename(filename);
+        });
+        item.appendChild(badge);
 
         if (photo.w && photo.h) {
           item.style.aspectRatio = `${photo.w} / ${photo.h}`;
@@ -165,22 +376,91 @@
         const img = document.createElement('img');
         img.alt = `Licensing photo ${i + 1}`;
         img.className = 'lazy';
-
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              img.src = `images/licensing/${filename}`;
-              img.onload = () => img.classList.add('loaded');
-              img.onerror = () => { item.style.display = 'none'; };
-              observer.unobserve(img);
-            }
-          });
-        }, { rootMargin: '200px' });
+        img.src = `images/licensing/${filename}`;
+        img.onload = () => {
+          img.classList.remove('lazy');
+          img.classList.add('loaded');
+          loadedCount++;
+          if (loadedCount >= threshold) grid.classList.add('ready');
+        };
+        img.onerror = () => { item.style.display = 'none'; };
 
         item.appendChild(img);
         grid.appendChild(item);
-        observer.observe(img);
       });
+    }
+
+    function toggleInquiryByFilename(filename) {
+      if (inquirySet.has(filename)) {
+        inquirySet.delete(filename);
+      } else {
+        inquirySet.add(filename);
+      }
+      saveInquiry();
+      updateCart();
+      const thumb = document.querySelector(`.masonry-item[data-filename="${CSS.escape(filename)}"]`);
+      if (thumb) thumb.classList.toggle('selected', inquirySet.has(filename));
+      // Sync lightbox button if this photo is open
+      if (photos[currentIdx] && (photos[currentIdx].file || photos[currentIdx]) === filename) {
+        updateInquiryBtn();
+      }
+    }
+
+    function toggleInquiry() {
+      const filename = photos[currentIdx].file || photos[currentIdx];
+      toggleInquiryByFilename(filename);
+    }
+
+    function updateInquiryBtn() {
+      const filename = photos[currentIdx] ? (photos[currentIdx].file || photos[currentIdx]) : null;
+      if (!filename) return;
+      const btn = document.getElementById('lb-inquire-btn');
+      const added = inquirySet.has(filename);
+      btn.classList.toggle('added', added);
+      btn.querySelector('svg').style.display = added ? 'none' : '';
+      document.getElementById('lb-inquire-label').textContent = added ? '✓  Added' : 'Add to Inquiry';
+    }
+
+    function updateCart() {
+      const controls = document.getElementById('inquiry-controls');
+      const count = inquirySet.size;
+      document.getElementById('inquiry-cart-badge').textContent = count;
+      document.getElementById('inquiry-cart-label').textContent = `Inquire about ${count} photo${count === 1 ? '' : 's'}`;
+      controls.classList.toggle('visible', count > 0);
+      // If filter is active but selection is now empty, turn it off
+      if (count === 0) deactivateFilter();
+    }
+
+    let filterActive = false;
+
+    function toggleSelectionFilter() {
+      filterActive ? deactivateFilter() : activateFilter();
+    }
+
+    function activateFilter() {
+      filterActive = true;
+      document.getElementById('gallery').classList.add('filter-active');
+      document.getElementById('inquiry-filter-label').textContent = 'Show All';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deactivateFilter() {
+      filterActive = false;
+      document.getElementById('gallery').classList.remove('filter-active');
+      const label = document.getElementById('inquiry-filter-label');
+      if (label) label.textContent = 'View Selection';
+    }
+
+    function submitInquiry() {
+      const list = [...inquirySet].map((f, i) => `${i + 1}. ${f}`).join('\n');
+      const msg = `Hi Colin, I'm interested in licensing the following photo${inquirySet.size > 1 ? 's' : ''}:\n\n${list}\n\nPlease let me know pricing and usage details.`;
+      closeLightbox();
+      openContactModal('Licensing Inquiry');
+      setTimeout(() => {
+        const ta = document.getElementById('cm-message');
+        if (ta) ta.value = msg;
+      }, 50);
+      // Don't clear yet — only clear after the form is actually submitted
     }
 
     // Lightbox
@@ -188,12 +468,15 @@
       currentIdx = idx;
       document.getElementById('lb-img').src = `images/licensing/${photos[idx].file || photos[idx]}`;
       document.getElementById('lightbox').classList.add('open');
+      document.getElementById('inquiry-controls').classList.add('lb-open');
       updateCounter();
+      updateInquiryBtn();
       document.body.style.overflow = 'hidden';
     }
 
     function closeLightbox() {
       document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('inquiry-controls').classList.remove('lb-open');
       document.getElementById('lb-img').src = '';
       document.body.style.overflow = '';
     }
@@ -202,12 +485,14 @@
       currentIdx = (currentIdx - 1 + photos.length) % photos.length;
       document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx].file || photos[currentIdx]}`;
       updateCounter();
+      updateInquiryBtn();
     }
 
     function lbNext() {
       currentIdx = (currentIdx + 1) % photos.length;
       document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx].file || photos[currentIdx]}`;
       updateCounter();
+      updateInquiryBtn();
     }
 
     function updateCounter() {
@@ -215,6 +500,7 @@
         `${currentIdx + 1} / ${photos.length}`;
     }
 
+    // Keyboard nav
     document.addEventListener('keydown', e => {
       const lb = document.getElementById('lightbox');
       if (!lb.classList.contains('open')) return;
@@ -226,6 +512,15 @@
     document.getElementById('lightbox').addEventListener('click', e => {
       if (e.target === e.currentTarget) closeLightbox();
     });
+
+    // Swipe gestures
+    let touchStartX = 0;
+    const lb = document.getElementById('lightbox');
+    lb.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) dx < 0 ? lbNext() : lbPrev();
+    }, { passive: true });
 
     function closeNav() {
       document.getElementById("nav-links").classList.remove("open");
