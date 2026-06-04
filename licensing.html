@@ -31,8 +31,8 @@
     </ul>
   </nav>
 
-  <!-- PASSWORD GATE — hidden by default, shown by JS if not authenticated -->
-  <div class="pw-gate" id="pw-gate" style="display:none;">
+  <!-- PASSWORD GATE — visible by default, hidden when auth passes -->
+  <div class="pw-gate" id="pw-gate">
     <svg class="pw-lock" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
     <h1>Licensing</h1>
     <p>Enter password to access the collection</p>
@@ -407,35 +407,70 @@
         img.alt = `Licensing photo ${i + 1}`;
         img.className = 'lazy';
         img.dataset.src = `images/licensing/${filename}`;
-        img.onload = () => {
-          img.classList.remove('lazy');
-          img.classList.add('loaded');
-        };
-        img.onerror = () => { item.style.display = 'none'; };
 
         item.appendChild(img);
         grid.appendChild(item);
       });
 
-      // Assign src in row-by-row order so images load across all columns evenly
-      const w = window.innerWidth;
-      const numCols = w > 1400 ? 5 : w > 1000 ? 4 : w > 680 ? 3 : 2;
-      const imgs = Array.from(grid.querySelectorAll('img[data-src]'));
-      const total = imgs.length;
-      const perCol = Math.ceil(total / numCols);
-      const loadOrder = [];
-      for (let row = 0; row < perCol; row++) {
-        for (let col = 0; col < numCols; col++) {
-          const idx = col * perCol + row;
-          if (idx < total) loadOrder.push(idx);
+      grid.classList.add('ready');
+
+      // Read actual rendered positions — accounts for real CSS columns layout
+      // (mixed portrait/landscape means perCol varies per column)
+      const allImgs = Array.from(grid.querySelectorAll('img[data-src]'));
+      const items = Array.from(grid.querySelectorAll('.masonry-item'));
+
+      // Sort by actual top position so we load in true visual top-to-bottom order
+      const sorted = items.map((el, i) => ({
+        i,
+        top: el.getBoundingClientRect().top
+      })).sort((a, b) => a.top - b.top);
+
+      // Group into visual rows (items within 10px of each other = same row)
+      const rows = [];
+      sorted.forEach(({ i, top }) => {
+        const last = rows[rows.length - 1];
+        if (last && Math.abs(top - last.top) < 10) {
+          last.indices.push(i);
+        } else {
+          rows.push({ top, indices: [i] });
         }
-      }
-      loadOrder.forEach(idx => {
-        imgs[idx].src = imgs[idx].dataset.src;
-        delete imgs[idx].dataset.src;
       });
 
-      grid.classList.add('ready');
+      // Load one visual row at a time, reveal all at once when done
+      let rowIdx = 0;
+      function loadRow() {
+        if (rowIdx >= rows.length) return;
+        const { indices } = rows[rowIdx++];
+        let done = 0;
+        indices.forEach(i => {
+          const img = allImgs[i];
+          const src = img.dataset.src;
+          delete img.dataset.src;
+          img.onload = () => {
+            done++;
+            if (done === indices.length) {
+              indices.forEach(j => {
+                allImgs[j].classList.remove('lazy');
+                allImgs[j].classList.add('loaded');
+              });
+              loadRow();
+            }
+          };
+          img.onerror = () => {
+            img.closest('.masonry-item').style.display = 'none';
+            done++;
+            if (done === indices.length) {
+              indices.forEach(j => {
+                allImgs[j].classList.remove('lazy');
+                allImgs[j].classList.add('loaded');
+              });
+              loadRow();
+            }
+          };
+          img.src = src;
+        });
+      }
+      loadRow();
     }
 
     function toggleInquiryByFilename(filename) {
