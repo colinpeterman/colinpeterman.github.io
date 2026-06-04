@@ -96,15 +96,12 @@
     function renderGallery() {
       const grid = document.getElementById('gallery');
       grid.innerHTML = '';
-      let loadedCount = 0;
-      const threshold = 12;
 
       photos.forEach((photo, i) => {
         const filename = photo.file || photo;
         const item = document.createElement('div');
         item.className = 'masonry-item';
 
-        // Reserve space before the image loads so columns don't reflow
         if (photo.w && photo.h) {
           item.style.aspectRatio = `${photo.w} / ${photo.h}`;
         }
@@ -112,18 +109,67 @@
         const img = document.createElement('img');
         img.alt = `Sports photo ${i + 1}`;
         img.className = 'lazy';
-        img.src = `images/sports/${filename}`;
-        img.onload = () => {
-          img.classList.remove('lazy');
-          img.classList.add('loaded');
-          loadedCount++;
-          if (loadedCount >= threshold) grid.classList.add('ready');
-        };
-        img.onerror = () => { item.style.display = 'none'; };
+        img.dataset.src = `images/sports/${filename}`;
 
         item.appendChild(img);
         grid.appendChild(item);
       });
+
+      grid.classList.add('ready');
+
+      // Read actual rendered positions after CSS columns lays out
+      const allImgs = Array.from(grid.querySelectorAll('img[data-src]'));
+      const items = Array.from(grid.querySelectorAll('.masonry-item'));
+
+      const sorted = items.map((el, i) => ({
+        i,
+        top: el.getBoundingClientRect().top
+      })).sort((a, b) => a.top - b.top);
+
+      const rows = [];
+      sorted.forEach(({ i, top }) => {
+        const last = rows[rows.length - 1];
+        if (last && Math.abs(top - last.top) < 10) {
+          last.indices.push(i);
+        } else {
+          rows.push({ top, indices: [i] });
+        }
+      });
+
+      let rowIdx = 0;
+      function loadRow() {
+        if (rowIdx >= rows.length) return;
+        const { indices } = rows[rowIdx++];
+        let done = 0;
+        indices.forEach(i => {
+          const img = allImgs[i];
+          const src = img.dataset.src;
+          delete img.dataset.src;
+          img.onload = () => {
+            done++;
+            if (done === indices.length) {
+              indices.forEach(j => {
+                allImgs[j].classList.remove('lazy');
+                allImgs[j].classList.add('loaded');
+              });
+              loadRow();
+            }
+          };
+          img.onerror = () => {
+            img.closest('.masonry-item').style.display = 'none';
+            done++;
+            if (done === indices.length) {
+              indices.forEach(j => {
+                allImgs[j].classList.remove('lazy');
+                allImgs[j].classList.add('loaded');
+              });
+              loadRow();
+            }
+          };
+          img.src = src;
+        });
+      }
+      loadRow();
     }
 
     // Lightbox
