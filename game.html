@@ -178,7 +178,11 @@ function flap() {
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); flap(); }
 });
-canvas.addEventListener('pointerdown', e => { e.preventDefault(); flap(); });
+document.addEventListener('pointerdown', e => {
+  if (e.target.id === 'back-btn') return;
+  e.preventDefault();
+  flap();
+});
 
 // ── Start ────────────────────────────────────────────────
 function startGame() {

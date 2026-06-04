@@ -286,6 +286,7 @@
     document.getElementById('nav-logo').addEventListener('click', function(e) {
       e.preventDefault();
       document.getElementById('game-overlay').style.display = 'block';
+      setTimeout(() => document.getElementById('game-frame').contentWindow.focus(), 100);
     });
 
     function closeGame() {
