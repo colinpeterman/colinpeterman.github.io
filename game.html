@@ -55,8 +55,8 @@ const GRAVITY  = 0.42;
 const FLAP_V   = -8;
 const PIPE_W   = 56;
 const GAP      = 148;
-const PIPE_SPD_BASE = 2.4;
-const PIPE_SPD_MAX  = 5.5;
+const PIPE_SPD_BASE = 3.0;
+const PIPE_SPD_MAX  = 9.0;
 let   pipeSpd = PIPE_SPD_BASE;
 
 // ── State ───────────────────────────────────────────────
@@ -237,7 +237,7 @@ function update() {
   pipes = pipes.filter(p => p.x + PIPE_W > -10);
 
   // Gradually increase speed every 5 points
-  pipeSpd = Math.min(PIPE_SPD_MAX, PIPE_SPD_BASE + score * 0.06);
+  pipeSpd = Math.min(PIPE_SPD_MAX, PIPE_SPD_BASE + score * 0.1);
 
   bgScroll -= pipeSpd * 0.25;
 
