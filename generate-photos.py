@@ -27,6 +27,29 @@ except ImportError:
     print('  ⚠️  Pillow not found — install it for dimension support: pip install Pillow')
 
 SUPPORTED = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+CONVERT_TO_WEBP = {'.jpg', '.jpeg', '.png'}
+WEBP_QUALITY = 82
+
+def convert_to_webp(filepath):
+    """Convert image to WebP alongside the original. Returns the new filename."""
+    if not HAS_PILLOW:
+        return os.path.basename(filepath)
+    base, ext = os.path.splitext(filepath)
+    if ext.lower() not in CONVERT_TO_WEBP:
+        return os.path.basename(filepath)
+    webp_path = base + '.webp'
+    if not os.path.exists(webp_path):
+        try:
+            with Image.open(filepath) as im:
+                im.save(webp_path, 'WEBP', quality=WEBP_QUALITY, method=6)
+            original_kb = os.path.getsize(filepath) // 1024
+            webp_kb = os.path.getsize(webp_path) // 1024
+            print(f'    Converted {os.path.basename(filepath)} → .webp ({original_kb}KB → {webp_kb}KB)')
+            os.remove(filepath)
+        except Exception as e:
+            print(f'    ⚠️  Could not convert {os.path.basename(filepath)}: {e}')
+            return os.path.basename(filepath)
+    return os.path.basename(webp_path)
 
 def get_dimensions(filepath):
     if not HAS_PILLOW:
@@ -46,10 +69,17 @@ def scan_folder(folder_path, existing_json_path=None):
         print(f'  Folder not found: {folder_path} — skipping.')
         return []
 
-    disk_files = set(
+    all_files = set(
         f for f in os.listdir(folder_path)
         if os.path.splitext(f)[1].lower() in SUPPORTED
     )
+    # Exclude original JPG/PNG if a WebP version already exists
+    disk_files = set()
+    for f in all_files:
+        base, ext = os.path.splitext(f)
+        if ext.lower() in CONVERT_TO_WEBP and (base + '.webp') in all_files:
+            continue
+        disk_files.add(f)
 
     # Load existing order if JSON already exists
     existing_order = []
@@ -66,8 +96,9 @@ def scan_folder(folder_path, existing_json_path=None):
     seen = set()
     for filename in existing_order:
         if filename in disk_files:
+            webp_name = convert_to_webp(os.path.join(folder_path, filename))
             w, h = get_dimensions(os.path.join(folder_path, filename))
-            entry = {'file': filename}
+            entry = {'file': webp_name}
             if w and h:
                 entry['w'] = w
                 entry['h'] = h
@@ -76,8 +107,9 @@ def scan_folder(folder_path, existing_json_path=None):
 
     # Append any brand new files not in the existing JSON
     for filename in sorted(disk_files - seen):
+        webp_name = convert_to_webp(os.path.join(folder_path, filename))
         w, h = get_dimensions(os.path.join(folder_path, filename))
-        entry = {'file': filename}
+        entry = {'file': webp_name}
         if w and h:
             entry['w'] = w
             entry['h'] = h
