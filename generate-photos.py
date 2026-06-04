@@ -29,6 +29,8 @@ except ImportError:
 SUPPORTED = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 CONVERT_TO_WEBP = {'.jpg', '.jpeg', '.png'}
 WEBP_QUALITY = 82
+THUMB_MAX = 800
+THUMB_QUALITY = 72
 
 def convert_to_webp(filepath):
     """Convert image to WebP alongside the original. Returns the new filename."""
@@ -50,6 +52,28 @@ def convert_to_webp(filepath):
             print(f'    ⚠️  Could not convert {os.path.basename(filepath)}: {e}')
             return os.path.basename(filepath)
     return os.path.basename(webp_path)
+
+def generate_thumbs(source_folder, entries):
+    """Create thumbnails for all entries into a sibling _thumbs folder."""
+    if not HAS_PILLOW:
+        return
+    thumb_folder = source_folder.rstrip('/').rstrip('\\') + '_thumbs'
+    os.makedirs(thumb_folder, exist_ok=True)
+    for entry in entries:
+        filename = entry['file'] if isinstance(entry, dict) else entry
+        src = os.path.join(source_folder, filename)
+        dst = os.path.join(thumb_folder, filename)
+        if os.path.exists(dst):
+            continue
+        try:
+            with Image.open(src) as im:
+                im.thumbnail((THUMB_MAX, THUMB_MAX), Image.LANCZOS)
+                im.save(dst, 'WEBP', quality=THUMB_QUALITY, method=6)
+            orig_kb = os.path.getsize(src) // 1024
+            thumb_kb = os.path.getsize(dst) // 1024
+            print(f'    Thumbnail {filename} ({orig_kb}KB → {thumb_kb}KB)')
+        except Exception as e:
+            print(f'    ⚠️  Could not thumbnail {filename}: {e}')
 
 def get_dimensions(filepath):
     if not HAS_PILLOW:
@@ -128,9 +152,11 @@ if __name__ == '__main__':
 
     sports = scan_folder('images/sports', 'data/sports.json')
     write_json('data/sports.json', sports)
+    generate_thumbs('images/sports', sports)
 
     licensing = scan_folder('images/licensing', 'data/licensing.json')
     write_json('data/licensing.json', licensing)
+    generate_thumbs('images/licensing', licensing)
 
     main = scan_folder('images/main', 'data/main.json')
     write_json('data/main.json', main)
