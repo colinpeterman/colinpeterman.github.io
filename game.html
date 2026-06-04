@@ -15,6 +15,7 @@
       align-items: center;
       justify-content: center;
       touch-action: none;
+      overscroll-behavior: none;
     }
     canvas { display: block; }
   </style>
@@ -183,6 +184,8 @@ document.addEventListener('pointerdown', e => {
   e.preventDefault();
   flap();
 });
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+document.addEventListener('touchstart', e => { if (e.target.id !== 'back-btn') e.preventDefault(); }, { passive: false });
 
 // ── Start ────────────────────────────────────────────────
 function startGame() {
