@@ -112,25 +112,16 @@
         const img = document.createElement('img');
         img.alt = `Sports photo ${i + 1}`;
         img.className = 'lazy';
-
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              img.src = `images/sports/${filename}`;
-              img.onload = () => {
-                img.classList.add('loaded');
-                loadedCount++;
-                if (loadedCount >= threshold) grid.classList.add('ready');
-              };
-              img.onerror = () => { item.style.display = 'none'; };
-              observer.unobserve(img);
-            }
-          });
-        }, { rootMargin: '200px' });
+        img.src = `images/sports/${filename}`;
+        img.onload = () => {
+          img.classList.add('loaded');
+          loadedCount++;
+          if (loadedCount >= threshold) grid.classList.add('ready');
+        };
+        img.onerror = () => { item.style.display = 'none'; };
 
         item.appendChild(img);
         grid.appendChild(item);
-        observer.observe(img);
       });
     }
 
