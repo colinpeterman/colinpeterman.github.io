@@ -1,2 +1,2 @@
-# Route licensing JSON through the auth function — blocks direct public access
-/data/licensing.json  /.netlify/functions/licensing-data  200
+# Force licensing JSON through the auth function even though the static file exists
+/data/licensing.json  /.netlify/functions/licensing-data  200!
