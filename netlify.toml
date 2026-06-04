@@ -1,6 +1,0 @@
-[build]
-  functions = "netlify/functions"
-
-# Include licensing.json in the licensing-data function bundle
-[functions."licensing-data"]
-  included_files = ["data/licensing.json"]
