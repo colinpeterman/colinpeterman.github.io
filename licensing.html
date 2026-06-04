@@ -83,15 +83,12 @@
     <button class="lb-btn lb-prev" onclick="lbPrev()" aria-label="Previous">&#8249;</button>
     <div class="lightbox-img-wrap">
       <img id="lb-img" src="" alt="Photo" />
+      <button class="lb-check-btn" id="lb-inquire-btn" onclick="toggleInquiry()" aria-label="Add to inquiry"></button>
     </div>
     <button class="lb-btn lb-next" onclick="lbNext()" aria-label="Next">&#8250;</button>
     <!-- Bottom action bar -->
     <div class="lb-action-bar">
       <span class="lb-counter" id="lb-counter"></span>
-      <button class="lb-inquire-btn" id="lb-inquire-btn" onclick="toggleInquiry()">
-        <svg id="lb-inquire-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span id="lb-inquire-label">Add to Inquiry</span>
-      </button>
     </div>
   </div>
 
@@ -110,6 +107,9 @@
 
   <style>
     /* Lightbox image — leave room for action bar */
+    #lightbox .lightbox-img-wrap {
+      position: relative;
+    }
     #lightbox .lightbox-img-wrap img {
       max-height: 78vh;
     }
@@ -139,34 +139,41 @@
       letter-spacing: 0.14em;
     }
 
-    .lb-inquire-btn {
+    /* Checkmark button — top-right corner of lightbox image */
+    .lb-check-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.7);
+      background: rgba(0,0,0,0.25);
+      cursor: pointer;
+      z-index: 10;
+    }
+    .lb-check-btn::after {
+      content: '+';
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.25);
-      color: #fff;
-      font-family: var(--font-cond);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      padding: 9px 18px;
-      border-radius: 100px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s, color 0.2s;
-      white-space: nowrap;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.9);
+      line-height: 1;
     }
-    .lb-inquire-btn:hover {
-      background: rgba(255,255,255,0.18);
-      border-color: rgba(255,255,255,0.5);
-    }
-    .lb-inquire-btn.added {
+    .lb-check-btn.added {
       background: #fff;
-      color: #111;
       border-color: #fff;
     }
-    .lb-inquire-btn.added:hover { background: rgba(255,255,255,0.88); }
+    .lb-check-btn.added::after {
+      content: '✓';
+      font-size: 16px;
+      font-weight: 600;
+      color: #111;
+    }
 
     /* Thumbnail checkbox overlay */
     .masonry-item .masonry-select-badge {
@@ -180,14 +187,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
-      color: transparent;
       cursor: pointer;
+    }
+    .masonry-item .masonry-select-badge::before {
+      content: '+';
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1;
     }
     .masonry-item.selected .masonry-select-badge {
       background: #fff;
       border-color: #fff;
+    }
+    .masonry-item.selected .masonry-select-badge::before {
+      content: '✓';
       color: #111;
+      font-size: 13px;
+      font-weight: 600;
     }
     /* Extend touch target without affecting visual */
     .masonry-item .masonry-select-badge::after {
@@ -347,8 +364,6 @@
     function renderGallery() {
       const grid = document.getElementById('gallery');
       grid.innerHTML = '';
-      let loadedCount = 0;
-      const threshold = 12;
 
       photos.forEach((photo, i) => {
         const filename = photo.file || photo;
@@ -361,7 +376,6 @@
 
         const badge = document.createElement('div');
         badge.className = 'masonry-select-badge';
-        badge.textContent = '✓';
         badge.title = 'Add to inquiry';
         badge.addEventListener('click', e => {
           e.stopPropagation();
@@ -377,17 +391,36 @@
         img.alt = `Licensing photo ${i + 1}`;
         img.className = 'lazy';
         img.src = `images/licensing/${filename}`;
+        img.dataset.src = `images/licensing/${filename}`;
         img.onload = () => {
           img.classList.remove('lazy');
           img.classList.add('loaded');
-          loadedCount++;
-          if (loadedCount >= threshold) grid.classList.add('ready');
         };
         img.onerror = () => { item.style.display = 'none'; };
 
         item.appendChild(img);
         grid.appendChild(item);
       });
+
+      // Assign src in row-by-row order so images load across all columns evenly
+      const w = window.innerWidth;
+      const numCols = w > 1400 ? 5 : w > 1000 ? 4 : w > 680 ? 3 : 2;
+      const imgs = Array.from(grid.querySelectorAll('img[data-src]'));
+      const total = imgs.length;
+      const perCol = Math.ceil(total / numCols);
+      const loadOrder = [];
+      for (let row = 0; row < perCol; row++) {
+        for (let col = 0; col < numCols; col++) {
+          const idx = col * perCol + row;
+          if (idx < total) loadOrder.push(idx);
+        }
+      }
+      loadOrder.forEach(idx => {
+        imgs[idx].src = imgs[idx].dataset.src;
+        delete imgs[idx].dataset.src;
+      });
+
+      grid.classList.add('ready');
     }
 
     function toggleInquiryByFilename(filename) {
@@ -415,10 +448,7 @@
       const filename = photos[currentIdx] ? (photos[currentIdx].file || photos[currentIdx]) : null;
       if (!filename) return;
       const btn = document.getElementById('lb-inquire-btn');
-      const added = inquirySet.has(filename);
-      btn.classList.toggle('added', added);
-      btn.querySelector('svg').style.display = added ? 'none' : '';
-      document.getElementById('lb-inquire-label').textContent = added ? '✓  Added' : 'Add to Inquiry';
+      btn.classList.toggle('added', inquirySet.has(filename));
     }
 
     function updateCart() {
@@ -438,6 +468,7 @@
     }
 
     function activateFilter() {
+      closeLightbox();
       filterActive = true;
       document.getElementById('gallery').classList.add('filter-active');
       document.getElementById('inquiry-filter-label').textContent = 'Show All';
