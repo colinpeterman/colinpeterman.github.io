@@ -179,7 +179,7 @@
 
   <!-- NAV -->
   <nav>
-    <a href="/" class="nav-logo">Phantom Photos</a>
+    <a href="/" class="nav-logo" id="nav-logo">Phantom Photos</a>
     <button class="nav-toggle" aria-label="Toggle menu" onclick="toggleNav(this)">
       <span></span><span></span><span></span>
     </button>
@@ -275,6 +275,25 @@
       .catch(() => {
         masonry.classList.add('ready');
       });
+  </script>
+
+  <!-- Game overlay -->
+  <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:#07080f;">
+    <iframe id="game-frame" src="game.html" style="width:100%; height:100%; border:none;"></iframe>
+  </div>
+
+  <script>
+    document.getElementById('nav-logo').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('game-overlay').style.display = 'block';
+    });
+
+    function closeGame() {
+      document.getElementById('game-overlay').style.display = 'none';
+      // Reset the iframe so next open starts fresh
+      const f = document.getElementById('game-frame');
+      f.src = f.src;
+    }
   </script>
 
   <script src="contact-modal.js"></script>

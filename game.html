@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Phantom Fly</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #07080f;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+    }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<button id="back-btn" onclick="goBack()" style="
+  position:fixed; top:14px; left:14px; z-index:10;
+  background:none; border:none; cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size:13px; letter-spacing:0.12em; text-transform:uppercase;
+  color:rgba(255,255,255,0.35); padding:6px 4px;
+">← BACK</button>
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+// Fixed game dimensions — no stretching
+const W = 360;
+const H = 620;
+canvas.width  = W;
+canvas.height = H;
+
+// Scale canvas to fit screen while keeping aspect ratio
+function fitCanvas() {
+  const scaleX = window.innerWidth  / W;
+  const scaleY = window.innerHeight / H;
+  const scale  = Math.min(scaleX, scaleY);
+  canvas.style.width  = Math.floor(W * scale) + 'px';
+  canvas.style.height = Math.floor(H * scale) + 'px';
+}
+fitCanvas();
+window.addEventListener('resize', fitCanvas);
+
+// ── Physics ─────────────────────────────────────────────
+const GRAVITY  = 0.42;
+const FLAP_V   = -8;
+const PIPE_W   = 56;
+const GAP      = 148;
+const PIPE_SPD_BASE = 2.4;
+const PIPE_SPD_MAX  = 5.5;
+let   pipeSpd = PIPE_SPD_BASE;
+
+// ── State ───────────────────────────────────────────────
+let state     = 'idle';
+let score     = 0;
+let hiScore   = +localStorage.getItem('pp_fly_hi') || 0;
+let tick      = 0;
+let pipes     = [];
+let particles = [];
+let popups    = [];
+let pipeTimer = 0;
+let shakeTime = 0;
+let newBest   = false;
+const PIPE_INTERVAL = 140;
+
+// ── Color lerp ───────────────────────────────────────────
+function lerpColor(a, b, t) {
+  const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
+  const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
+  const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${bl.toString(16).padStart(2,'0')}`;
+}
+
+// ── Drone ───────────────────────────────────────────────
+const DW = 30, DH = 14;
+const drone = { x: W * 0.28, y: H * 0.45, vy: 0, tilt: 0 };
+let propSpin = 0;
+
+function resetDrone() {
+  drone.y  = H * 0.45;
+  drone.vy = 0;
+  drone.tilt = 0;
+}
+
+// ── Stars (fixed, pre-generated) ─────────────────────────
+const stars = Array.from({ length: 55 }, () => ({
+  x: Math.random() * W,
+  y: Math.random() * H * 0.7,
+  r: 0.5 + Math.random() * 1.2,
+  a: 0.2 + Math.random() * 0.5,
+  twinkle: Math.random() * Math.PI * 2
+}));
+
+// ── BG buildings (parallax, pre-generated) ───────────────
+const bgBuilds = [];
+(function () {
+  let x = 0;
+  while (x < W + 200) {
+    const bw = 24 + Math.floor(Math.random() * 40);
+    const bh = 50 + Math.floor(Math.random() * 160);
+    bgBuilds.push({ x, w: bw, h: bh });
+    x += bw + 3 + Math.floor(Math.random() * 8);
+  }
+})();
+let bgScroll = 0;
+
+// ── Window pre-computation ───────────────────────────────
+function makeWindows(bw, bh) {
+  const wins = [];
+  const cols = Math.max(1, Math.floor((bw - 8) / 11));
+  const rows = Math.max(1, Math.floor((bh - 12) / 14));
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (Math.random() < 0.28) continue; // some dark
+      wins.push({ c, r, warm: Math.random() > 0.45 });
+    }
+  }
+  return wins;
+}
+
+// ── Pipe spawn ───────────────────────────────────────────
+function spawnPipe() {
+  const minH = 70;
+  const maxH = H - GAP - minH - 30;
+  const topH = minH + Math.floor(Math.random() * maxH);
+  const botH = H - topH - GAP;
+  pipes.push({
+    x:    W + PIPE_W,
+    topH,
+    botY: topH + GAP,
+    botH,
+    passed: false,
+    topWins: makeWindows(PIPE_W, topH),
+    botWins: makeWindows(PIPE_W, botH)
+  });
+}
+
+// ── Particles ────────────────────────────────────────────
+function spawnFlap() {
+  for (let i = 0; i < 4; i++) {
+    particles.push({
+      x: drone.x, y: drone.y + 6,
+      vx: (Math.random() - 0.5) * 2,
+      vy: 1.5 + Math.random() * 1.5,
+      life: 1, decay: 0.08 + Math.random() * 0.04, size: 1.5 + Math.random() * 2
+    });
+  }
+}
+function spawnCrash() {
+  for (let i = 0; i < 20; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const s = 2 + Math.random() * 4;
+    particles.push({
+      x: drone.x, y: drone.y,
+      vx: Math.cos(a) * s, vy: Math.sin(a) * s - 1.5,
+      life: 1, decay: 0.02 + Math.random() * 0.02, size: 2 + Math.random() * 4
+    });
+  }
+}
+
+// ── Input ────────────────────────────────────────────────
+function flap() {
+  if (state === 'idle' || state === 'dead') { startGame(); return; }
+  drone.vy = FLAP_V;
+  spawnFlap();
+}
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); flap(); }
+});
+canvas.addEventListener('pointerdown', e => { e.preventDefault(); flap(); });
+
+// ── Start ────────────────────────────────────────────────
+function startGame() {
+  state = 'running'; score = 0; tick = 0;
+  pipes = []; particles = []; popups = []; pipeTimer = 0;
+  pipeSpd = PIPE_SPD_BASE; shakeTime = 0; newBest = false;
+  resetDrone();
+  spawnPipe();
+}
+
+// ── Collision ────────────────────────────────────────────
+function collides(p) {
+  const px = drone.x - DW / 2 + 5, pw = DW - 10;
+  const py = drone.y - DH / 2 + 3, ph = DH - 6;
+  const inX = px < p.x + PIPE_W && px + pw > p.x;
+  if (!inX) return false;
+  return py < p.topH || py + ph > p.botY;
+}
+
+// ── Update ───────────────────────────────────────────────
+function update() {
+  if (state !== 'running') return;
+  tick++;
+  propSpin += 0.38;
+
+  drone.vy   += GRAVITY;
+  drone.y    += drone.vy;
+  drone.tilt  = Math.max(-28, Math.min(38, drone.vy * 3.8));
+
+  if (drone.y - DH / 2 < 0 || drone.y + DH / 2 > H) { die(); return; }
+
+  pipeTimer++;
+  if (pipeTimer >= PIPE_INTERVAL) { spawnPipe(); pipeTimer = 0; }
+
+  for (const p of pipes) {
+    p.x -= pipeSpd;
+    if (!p.passed && p.x + PIPE_W < drone.x) {
+      p.passed = true; score++;
+      if (score > hiScore) {
+        hiScore = score;
+        localStorage.setItem('pp_fly_hi', hiScore);
+        newBest = true;
+      }
+      // Score milestone popup every point
+      popups.push({ text: score.toString(), x: W / 2, y: H * 0.28, life: 1, decay: 0.03 });
+    }
+    if (collides(p)) { die(); return; }
+  }
+  pipes = pipes.filter(p => p.x + PIPE_W > -10);
+
+  // Gradually increase speed every 5 points
+  pipeSpd = Math.min(PIPE_SPD_MAX, PIPE_SPD_BASE + score * 0.06);
+
+  bgScroll -= pipeSpd * 0.25;
+
+  particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life -= p.decay; });
+  particles = particles.filter(p => p.life > 0);
+
+}
+
+function die() { state = 'dead'; spawnCrash(); }
+
+// ── Draw helpers ─────────────────────────────────────────
+function drawBuilding(bx, by, bw, bh, wins, dark) {
+  // Body
+  ctx.fillStyle = dark ? '#0e0f18' : '#121420';
+  ctx.fillRect(bx, by, bw, bh);
+  // Left edge highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.fillRect(bx, by, 2, bh);
+  // Windows (pre-computed, stable)
+  wins.forEach(({ c, r, warm }) => {
+    const wx = bx + 4 + c * 11;
+    const wy = by + 6 + r * 14;
+    if (wx + 6 > bx + bw - 2 || wy + 7 > by + bh - 2) return;
+    ctx.fillStyle = warm ? 'rgba(255,215,100,0.55)' : 'rgba(160,210,255,0.45)';
+    ctx.fillRect(wx, wy, 6, 7);
+  });
+  // Roof ledge
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(bx - 3, by + (bh < 0 ? 0 : bh - 5), bw + 6, 5);
+}
+
+function drawDrone(x, y, tilt, dead) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(tilt * Math.PI / 180);
+
+  const col  = dead ? '#ff5555' : '#d8d8d8';
+  const dark = dead ? '#cc2222' : '#888888';
+  const A    = 13; // arm radius
+
+  // X-frame arms (diagonal)
+  const motors = [[-A, -A * 0.6], [A, -A * 0.6], [-A, A * 0.6], [A, A * 0.6]];
+
+  ctx.strokeStyle = dark;
+  ctx.lineWidth = 2;
+  motors.forEach(([mx, my]) => {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(mx, my);
+    ctx.stroke();
+  });
+
+  // Central body
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.roundRect(-6, -4, 12, 8, 2);
+  ctx.fill();
+
+  // Top ridge detail
+  ctx.fillStyle = dark;
+  ctx.fillRect(-3, -4, 6, 2);
+
+  // Camera dome (bottom center)
+  ctx.fillStyle = dead ? '#cc2222' : '#222';
+  ctx.beginPath();
+  ctx.arc(0, 5, 4, 0, Math.PI);
+  ctx.fill();
+  ctx.fillStyle = dead ? '#ff8888' : '#4af';
+  ctx.beginPath();
+  ctx.arc(0, 5, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Motors + props
+  motors.forEach(([mx, my], i) => {
+    // Motor housing
+    ctx.fillStyle = dark;
+    ctx.beginPath();
+    ctx.arc(mx, my, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.arc(mx, my, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Spinning blades
+    ctx.save();
+    ctx.translate(mx, my);
+    ctx.rotate(propSpin * (i % 2 === 0 ? 1 : -1));
+    ctx.strokeStyle = dead ? 'rgba(255,80,80,0.7)' : 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1.8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-8, 0); ctx.lineTo(8, 0);
+    ctx.stroke();
+    ctx.rotate(Math.PI / 2);
+    ctx.beginPath();
+    ctx.moveTo(-6, 0); ctx.lineTo(6, 0);
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // Nav LEDs: green front-right, red back-left
+  ctx.fillStyle = dead ? '#ff4444' : '#44ff88';
+  ctx.beginPath(); ctx.arc(A, -A * 0.6, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ff4444';
+  ctx.beginPath(); ctx.arc(-A, A * 0.6, 1.8, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+}
+
+// ── Draw ─────────────────────────────────────────────────
+function draw() {
+  // Sky — shifts from cold night → warm city glow as speed increases
+  const speedT = Math.max(0, Math.min(1, (pipeSpd - PIPE_SPD_BASE) / (PIPE_SPD_MAX - PIPE_SPD_BASE)));
+  const skyTop = lerpColor('#07080f', '#1a0608', speedT);
+  const skyMid = lerpColor('#0d1022', '#220e0a', speedT);
+  const skyBot = lerpColor('#16102e', '#3a1005', speedT);
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0,   skyTop);
+  sky.addColorStop(0.7, skyMid);
+  sky.addColorStop(1,   skyBot);
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  stars.forEach(s => {
+    ctx.globalAlpha = s.a * (0.7 + 0.3 * Math.sin(tick * 0.018 + s.twinkle));
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Distant bg buildings (parallax)
+  bgBuilds.forEach(b => {
+    const bx = ((b.x + bgScroll % (W + 200)) + W + 200) % (W + 200) - 100;
+    ctx.fillStyle = 'rgba(14,15,26,0.7)';
+    ctx.fillRect(bx, H - b.h, b.w, b.h);
+    ctx.fillStyle = 'rgba(255,255,255,0.025)';
+    ctx.fillRect(bx, H - b.h, 1, b.h);
+  });
+
+  // Pipe buildings
+  pipes.forEach(p => {
+    // Top building (hangs from top)
+    drawBuilding(p.x, 0, PIPE_W, p.topH, p.topWins, false);
+    // Bottom building (rises from bottom)
+    drawBuilding(p.x, p.botY, PIPE_W, p.botH, p.botWins, false);
+    // Roof caps
+    ctx.fillStyle = 'rgba(255,255,255,0.13)';
+    ctx.fillRect(p.x - 3, p.topH - 6, PIPE_W + 6, 6);
+    ctx.fillRect(p.x - 3, p.botY,     PIPE_W + 6, 6);
+  });
+
+  // Ground glow
+  const glow = ctx.createLinearGradient(0, H - 40, 0, H);
+  glow.addColorStop(0, 'rgba(60,40,140,0)');
+  glow.addColorStop(1, 'rgba(60,40,140,0.22)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, H - 40, W, 40);
+
+  // Particles
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life * 0.9;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  });
+  ctx.globalAlpha = 1;
+
+  // Drone
+  drawDrone(drone.x, drone.y, drone.tilt, state === 'dead');
+
+  // Score
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = `48px 'Bebas Neue', sans-serif`;
+  ctx.fillText(score, W / 2, 54);
+
+  if (hiScore > 0) {
+    ctx.fillStyle = newBest && state === 'running' ? 'rgba(255,220,60,0.6)' : 'rgba(255,255,255,0.22)';
+    ctx.font = `18px 'Bebas Neue', sans-serif`;
+    ctx.fillText(`BEST  ${hiScore}`, W / 2, 76);
+  }
+
+  // Idle
+  if (state === 'idle') {
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.font = `56px 'Bebas Neue', sans-serif`;
+    ctx.fillText('PHANTOM FLY', W / 2, H * 0.4);
+    ctx.fillStyle = 'rgba(255,255,255,0.32)';
+    ctx.font = `16px 'Barlow Condensed', sans-serif`;
+    ctx.fillText('TAP  ·  CLICK  ·  SPACE  TO  FLY', W / 2, H * 0.4 + 30);
+  }
+
+  // Dead
+  if (state === 'dead') {
+    ctx.fillStyle = 'rgba(7,8,15,0.6)';
+    ctx.fillRect(0, H * 0.3, W, newBest ? 172 : 130);
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.font = `52px 'Bebas Neue', sans-serif`;
+    ctx.fillText('CRASHED', W / 2, H * 0.4);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = `24px 'Bebas Neue', sans-serif`;
+    ctx.fillText(`SCORE  ${score}`, W / 2, H * 0.4 + 34);
+    if (newBest) {
+      ctx.fillStyle = `rgba(255,${Math.floor(180 + Math.sin(tick * 0.15) * 60)},40,0.95)`;
+      ctx.font = `28px 'Bebas Neue', sans-serif`;
+      ctx.fillText('✦  NEW BEST  ✦', W / 2, H * 0.4 + 66);
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.font = `14px 'Barlow Condensed', sans-serif`;
+      ctx.fillText('tap to fly again', W / 2, H * 0.4 + 90);
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.28)';
+      ctx.font = `15px 'Barlow Condensed', sans-serif`;
+      ctx.fillText('tap to fly again', W / 2, H * 0.4 + 60);
+    }
+  }
+
+}
+
+// ── Back button ──────────────────────────────────────────
+function goBack() {
+  if (window.parent !== window) {
+    window.parent.closeGame();
+  } else {
+    window.location.href = '/';
+  }
+}
+
+// ── Loop ─────────────────────────────────────────────────
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>
