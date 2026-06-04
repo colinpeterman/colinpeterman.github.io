@@ -1,190 +1,94 @@
-# Phantom Photos — GitHub Pages Setup Guide
+# Phantom Photos — colinpeterman.com
 
-Complete instructions for getting your site live at colinpeterman.com.
+Personal photography portfolio for Colin Peterman. Hosted on GitHub Pages at [colinpeterman.com](https://www.colinpeterman.com).
+
+---
+
+## Stack
+
+- Static HTML/CSS/JS — no framework, no build step
+- GitHub Pages for hosting
+- Formspree for contact form submissions
+- Images served as WebP for performance
 
 ---
 
 ## File Structure
 
 ```
-phantom-photos/
-├── index.html            ← Home page
-├── sports.html           ← Sports gallery
-├── licensing.html        ← Licensing gallery (password protected)
-├── contact.html          ← Contact form + social links
-├── style.css             ← All styling
-├── generate-photos.py    ← Run this to update galleries after adding photos
+├── index.html              ← Home page (masonry hero)
+├── sports.html             ← Sports gallery
+├── licensing.html          ← Password-gated licensing gallery
+├── contact.html            ← Redirects to index (modal handles contact)
+├── 404.html                ← Custom 404 page
+├── style.css               ← All global styles
+├── contact-modal.js        ← Shared contact modal + Formspree submission
+├── generate-photos.py      ← Run after adding photos — converts to WebP, updates JSON
+├── CNAME                   ← Custom domain config for GitHub Pages
+├── robots.txt              ← Blocks AI crawlers, protects licensing images
+├── sitemap.xml             ← SEO sitemap
 ├── data/
-│   ├── sports.json       ← List of sports photo filenames (auto-generated)
-│   └── licensing.json    ← List of licensing photo filenames (auto-generated)
+│   ├── main.json           ← Home hero photo list (auto-generated)
+│   ├── sports.json         ← Sports gallery photo list (auto-generated)
+│   └── licensing.json      ← Licensing gallery photo list (auto-generated)
 └── images/
-    ├── hero.jpg          ← Home page hero (you add this)
-    ├── home-sports.jpg   ← Sports section preview (you add this)
-    ├── home-licensing.jpg← Licensing section preview (you add this)
-    ├── contact-bg.jpg    ← Contact page background (you add this)
-    ├── sports/           ← Dump all sports photos here
-    └── licensing/        ← Dump all licensing photos here
+    ├── favicon/            ← Favicon image
+    ├── main/               ← Home page hero photos
+    ├── sports/             ← Sports gallery photos
+    ├── licensing/          ← Licensing gallery photos (blocked in robots.txt)
+    └── licensing_lock/     ← Lock icon for licensing gate
 ```
 
 ---
 
-## Step 1 — Set Up GitHub (5 minutes, one-time)
+## Adding Photos
 
-1. Go to **https://github.com** and create a free account (if you don't have one).
-2. Click the **+** icon (top right) → **New repository**.
-3. Name it exactly: `colinpeterman.github.io`
-   - This special name tells GitHub to host it as your website.
-4. Set it to **Public**.
-5. Click **Create repository**.
-
----
-
-## Step 2 — Upload Your Files
-
-**Option A — GitHub's web interface (easiest, no coding required):**
-
-1. Open your new repository on GitHub.
-2. Click **Add file** → **Upload files**.
-3. Drag and drop ALL the files from this folder.
-4. For the `images/` and `data/` folders — click inside each folder then upload files into them.
-5. Click **Commit changes**.
-
-**Option B — GitHub Desktop app (easier for ongoing updates):**
-
-1. Download GitHub Desktop at **https://desktop.github.com**.
-2. Sign in, clone your repository to your computer.
-3. Copy all the project files into the cloned folder.
-4. In GitHub Desktop, click **Commit to main** then **Push origin**.
-
----
-
-## Step 3 — Enable GitHub Pages
-
-1. In your repository on GitHub, click **Settings** (top tab).
-2. In the left sidebar, click **Pages**.
-3. Under **Source**, select **Deploy from a branch**.
-4. Set branch to **main** and folder to **/ (root)**.
-5. Click **Save**.
-
-Your site will be live at `https://colinpeterman.github.io` within 1-2 minutes.
-
----
-
-## Step 4 — Connect Your Squarespace Domain
-
-Since you're keeping your domain at Squarespace:
-
-1. Log into your **Squarespace account** → **Domains**.
-2. Click on **colinpeterman.com** → **DNS Settings**.
-3. Delete any existing **CNAME** record for `www`.
-4. Add a new **CNAME** record:
-   - Host: `www`
-   - Points to: `colinpeterman.github.io`
-5. For the root domain (`@`), add these **A records** (one for each IP):
-   ```
-   185.199.108.153
-   185.199.109.153
-   185.199.110.153
-   185.199.111.153
-   ```
-6. Back in GitHub → Settings → Pages, enter `www.colinpeterman.com` in the **Custom domain** field.
-7. Check **Enforce HTTPS** (free SSL, takes ~24 hours to activate).
-
-DNS changes can take up to 48 hours but usually work within a few hours.
-
----
-
-## Step 5 — Add Your Photos
-
-### Adding photos to galleries:
-
-1. Put your sports photos in the `images/sports/` folder.
-2. Put your licensing photos in the `images/licensing/` folder.
-3. Open Terminal (Mac) or Command Prompt (Windows), navigate to the project folder, and run:
+1. Drop photos into the appropriate `images/` subfolder (`main/`, `sports/`, or `licensing/`)
+2. Run from the project root:
    ```
    python3 generate-photos.py
    ```
-   This updates `data/sports.json` and `data/licensing.json` automatically.
-4. Upload the updated files to GitHub.
+   This converts all JPEGs to WebP, deletes the originals, and updates the JSON manifests.
+3. Commit and push — galleries update automatically.
 
-### If you don't want to use Python:
-Manually edit `data/sports.json` — it's just a list of filenames:
-```json
-[
-  "Photo1.jpg",
-  "Photo2.jpg",
-  "Photo3.jpg"
-]
+Requires Pillow: `pip install Pillow`
+
+---
+
+## Ongoing Workflow
+
+```bash
+# After adding new photos:
+python3 generate-photos.py
+git add .
+git commit -m "add new photos"
+git push
 ```
 
 ---
 
-## Step 6 — Swap in Your Real Images
+## Licensing Password
 
-Replace the placeholder backgrounds with real photos by editing `index.html` and `contact.html`.
+The licensing page uses client-side SHA-256 password hashing. To change the password:
 
-In `index.html`, find each `<!-- HERO IMAGE SETUP -->` comment and follow the instructions there.
-
-### Hero image (home page):
-```html
-<!-- Replace this: -->
-<div style="width:100%;height:100%;background:linear-gradient(...)"></div>
-
-<!-- With this: -->
-<img src="images/hero.jpg" alt="Colin Peterman Photography" />
-```
-
-Same pattern for `home-sports.jpg`, `home-licensing.jpg`, and `contact-bg.jpg`.
-
----
-
-## Step 7 — Set Up Contact Form (2 minutes)
-
-The contact form uses **Formspree** — free, no backend needed.
-
-1. Go to **https://formspree.io** and sign up with your Gmail.
-2. Click **New Form**, give it a name.
-3. Copy your form ID (looks like `xabc1234`).
-4. In `contact.html`, find this line:
-   ```html
-   action="https://formspree.io/f/YOUR_FORMSPREE_ID"
+1. Generate a SHA-256 hash of your new password (e.g. at [emn178.github.io/online-tools/sha256.html](https://emn178.github.io/online-tools/sha256.html))
+2. In `licensing.html`, replace the `HASH` constant near the top of the `<script>`:
+   ```javascript
+   const HASH = 'your_new_hash_here';
    ```
-5. Replace `YOUR_FORMSPREE_ID` with your actual ID.
-6. Submissions will be emailed to `colinpeterman@gmail.com` automatically.
+
+Note: This is a soft gate — sufficient for casual protection, not server-side security.
 
 ---
 
-## Step 8 — Change the Licensing Password
+## DNS (Squarespace)
 
-In `licensing.html`, find this line near the top of the `<script>`:
-```javascript
-const CORRECT_PASSWORD = 'phantom2024';
-```
-Change `phantom2024` to whatever you want.
+| Type  | Name | Value                    |
+|-------|------|--------------------------|
+| A     | @    | 185.199.108.153          |
+| A     | @    | 185.199.109.153          |
+| A     | @    | 185.199.110.153          |
+| A     | @    | 185.199.111.153          |
+| CNAME | www  | colinpeterman.github.io  |
 
-> **Note:** This is client-side password protection — it's fine for keeping casual visitors out, but a determined person could view source and find the password. For stronger protection you'd need server-side auth (which GitHub Pages doesn't support). For licensing use-cases this level is typically fine.
-
----
-
-## Ongoing Workflow (Adding New Photos)
-
-1. Copy new photos into `images/sports/` or `images/licensing/`.
-2. Run `python3 generate-photos.py` from the project folder.
-3. Upload the new photos + updated JSON files to GitHub.
-4. Done — galleries update automatically.
-
----
-
-## Troubleshooting
-
-**Site not showing up:** Wait 5 minutes after enabling Pages, then try a hard refresh (Cmd+Shift+R).
-
-**Domain not working:** DNS changes take time — wait up to 48 hours. Double-check the CNAME points to `colinpeterman.github.io` (not the IP addresses — those go on the `@` A record).
-
-**Photos not appearing:** Make sure `data/sports.json` has the correct filenames matching what's in `images/sports/`. Filenames are case-sensitive.
-
-**Contact form not working:** Make sure you replaced `YOUR_FORMSPREE_ID` with your actual Formspree form ID.
-
----
-
-Questions? Email colinpeterman@gmail.com or check GitHub Pages docs at https://docs.github.com/pages.
+GitHub Pages custom domain is set to `www.colinpeterman.com` with Enforce HTTPS enabled.

@@ -98,6 +98,8 @@ function openContactModal(subject) {
   const modal = document.getElementById('contact-modal');
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+  const controls = document.getElementById('inquiry-controls');
+  if (controls) controls.style.display = 'none';
   // Reset form if previously submitted
   const form = document.getElementById('cm-form');
   const success = document.getElementById('cm-success');
@@ -118,4 +120,9 @@ function openContactModal(subject) {
 function closeContactModal() {
   document.getElementById('contact-modal').classList.remove('open');
   document.body.style.overflow = '';
+  // Restore inquiry controls if there are items in the cart
+  const controls = document.getElementById('inquiry-controls');
+  if (controls && typeof inquirySet !== 'undefined' && inquirySet.size > 0) {
+    controls.style.display = '';
+  }
 }
