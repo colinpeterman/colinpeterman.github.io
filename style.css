@@ -32,6 +32,14 @@ body {
 a { text-decoration: none; color: inherit; }
 img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
 .masonry-item img { pointer-events: none; }
+.masonry-item { user-select: none; -webkit-user-select: none; }
+.masonry-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0,0,0,0.001);
+}
 
 /* ========================================
    NAV

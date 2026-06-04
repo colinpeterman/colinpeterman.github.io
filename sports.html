@@ -99,10 +99,15 @@
       let loadedCount = 0;
       const threshold = 12;
 
-      photos.forEach((filename, i) => {
+      photos.forEach((photo, i) => {
+        const filename = photo.file || photo;
         const item = document.createElement('div');
         item.className = 'masonry-item';
-        
+
+        // Reserve space before the image loads so columns don't reflow
+        if (photo.w && photo.h) {
+          item.style.aspectRatio = `${photo.w} / ${photo.h}`;
+        }
 
         const img = document.createElement('img');
         img.alt = `Sports photo ${i + 1}`;
@@ -117,7 +122,7 @@
                 loadedCount++;
                 if (loadedCount >= threshold) grid.classList.add('ready');
               };
-              img.onerror = () => { img.src = ''; img.style.minHeight = '200px'; };
+              img.onerror = () => { item.style.display = 'none'; };
               observer.unobserve(img);
             }
           });
@@ -132,7 +137,7 @@
     // Lightbox
     function openLightbox(idx) {
       currentIdx = idx;
-      document.getElementById('lb-img').src = `images/sports/${photos[idx]}`;
+      document.getElementById('lb-img').src = `images/sports/${photos[idx].file || photos[idx]}`;
       document.getElementById('lightbox').classList.add('open');
       updateCounter();
       document.body.style.overflow = 'hidden';
@@ -146,13 +151,13 @@
 
     function lbPrev() {
       currentIdx = (currentIdx - 1 + photos.length) % photos.length;
-      document.getElementById('lb-img').src = `images/sports/${photos[currentIdx]}`;
+      document.getElementById('lb-img').src = `images/sports/${photos[currentIdx].file || photos[currentIdx]}`;
       updateCounter();
     }
 
     function lbNext() {
       currentIdx = (currentIdx + 1) % photos.length;
-      document.getElementById('lb-img').src = `images/sports/${photos[currentIdx]}`;
+      document.getElementById('lb-img').src = `images/sports/${photos[currentIdx].file || photos[currentIdx]}`;
       updateCounter();
     }
 
@@ -160,6 +165,11 @@
       document.getElementById('lb-counter').textContent =
         `${currentIdx + 1} / ${photos.length}`;
     }
+
+    // Block right-click, selection, and copy on gallery images
+    document.getElementById('gallery').addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
 
     // Keyboard nav
     document.addEventListener('keydown', e => {

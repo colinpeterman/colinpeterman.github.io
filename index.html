@@ -234,51 +234,46 @@
       document.body.classList.toggle('scrolled', window.scrollY > 60);
     });
 
-    const mainPhotos = [
-      'CMP01984-Enhanced-NR.jpg','CMP02038-Enhanced-NR.jpg','CMP02077.jpg',
-      'DJI_0073-HDR-Pano.jpg','DJI_0130-HDR.jpg','DJI_0136-HDR-Pano.jpg',
-      'DJI_0155-Enhanced-NR.jpg','DJI_0188-Enhanced-NR.jpg','DJI_0458-Pano.jpg',
-      'DJI_0629-HDR-Pano.jpg','DJI_0726-Enhanced-NR.jpg','DJI_0796-Enhanced-NR.jpg',
-      'DSC00372.jpg','DSC00429-Enhanced-NR.jpg','DSC00703.jpg','DSC01544-Enhanced-NR.jpg',
-      'DSC02440.jpg','DSC03579.jpg','DSC05389.jpg','DSC06920.jpg','DSC07076-Enhanced-NR.jpg',
-      'DSC07391-Enhanced-NR.jpg','DSC07558.jpg','DSC08268.jpg','DSC08553.jpg',
-      'DSC09107.jpg','DSC09445-Enhanced-NR.jpg','Final-Tall.jpg','final.jpg',
-      'rainbow.jpg','thirdfinal.jpg'
-    ];
-
-    // Shuffle
-    for (let i = mainPhotos.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [mainPhotos[i], mainPhotos[j]] = [mainPhotos[j], mainPhotos[i]];
-    }
-
     const masonry = document.getElementById('hero-masonry');
     let loadedCount = 0;
-    const threshold = 8;
+    const threshold = 20;
 
-    mainPhotos.forEach(filename => {
-      const item = document.createElement('div');
-      item.className = 'hero-masonry-item';
-      const img = document.createElement('img');
-      img.alt = '';
+    fetch('data/main.json')
+      .then(r => r.ok ? r.json() : [])
+      .then(list => {
+        // Shuffle
+        for (let i = list.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [list[i], list[j]] = [list[j], list[i]];
+        }
 
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            img.src = `images/main/${filename}`;
-            img.onload = () => {
-              loadedCount++;
-              if (loadedCount >= threshold) masonry.classList.add('ready');
-            };
-            observer.unobserve(img);
+        list.forEach(photo => {
+          const filename = photo.file || photo;
+          const item = document.createElement('div');
+          item.className = 'hero-masonry-item';
+
+          if (photo.w && photo.h) {
+            item.style.aspectRatio = `${photo.w} / ${photo.h}`;
           }
-        });
-      }, { rootMargin: '100px' });
 
-      item.appendChild(img);
-      masonry.appendChild(item);
-      observer.observe(img);
-    });
+          const img = document.createElement('img');
+          img.alt = '';
+          img.style.opacity = '0';
+          img.style.transition = 'opacity 0.4s ease';
+          img.src = `images/main/${filename}`;
+          img.onload = () => {
+            img.style.opacity = '1';
+            loadedCount++;
+            if (loadedCount >= threshold) masonry.classList.add('ready');
+          };
+
+          item.appendChild(img);
+          masonry.appendChild(item);
+        });
+      })
+      .catch(() => {
+        masonry.classList.add('ready');
+      });
   </script>
 
   <script src="contact-modal.js"></script>

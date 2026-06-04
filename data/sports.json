@@ -1,66 +1,322 @@
 [
-  "CMP00006.jpg",
-  "CMP02078.jpg",
-  "CMP02331.jpg",
-  "CMP03043-Enhanced-NR.jpg",
-  "CMP04273.jpg",
-  "CMP04522.jpg",
-  "CMP04730.jpg",
-  "CMP05162.jpg",
-  "CMP06607-Enhanced-NR.jpg",
-  "CMP06618-Enhanced-NR.jpg",
-  "CMP06626-Enhanced-NR.jpg",
-  "CMP06655-Enhanced-NR.jpg",
-  "CMP06834-Enhanced-NR.jpg",
-  "CMP06848-Enhanced-NR.jpg",
-  "CMP06862-Enhanced-NR.jpg",
-  "CMP06866-Enhanced-NR.jpg",
-  "CMP06890-Enhanced-NR.jpg",
-  "CMP08555.jpg",
-  "CMP08600.jpg",
-  "CMP08606.jpg",
-  "CMP08621.jpg",
-  "CMP08767.jpg",
-  "CMP09026.jpg",
-  "CMP09521-Enhanced-NR.jpg",
-  "CMP09592.jpg",
-  "CMP09620.jpg",
-  "CMP09676.jpg",
-  "CMP09839.jpg",
-  "CMP09881.jpg",
-  "CMP09909-Enhanced-NR.jpg",
-  "CMP09986.jpg",
-  "DSC00016-Enhanced-NR.jpg",
-  "DSC00028-Enhanced-NR.jpg",
-  "DSC00499-Enhanced-NR.jpg",
-  "DSC00981-Enhanced-NR.jpg",
-  "DSC02453.jpg",
-  "DSC02460.jpg",
-  "DSC02466.jpg",
-  "DSC02479.jpg",
-  "DSC02572.jpg",
-  "DSC02579.jpg",
-  "DSC02812.jpg",
-  "DSC02974.jpg",
-  "DSC02981.jpg",
-  "DSC03014.jpg",
-  "DSC03034.jpg",
-  "DSC03115.jpg",
-  "DSC03141.jpg",
-  "DSC03199.jpg",
-  "DSC03324-Enhanced-NR.jpg",
-  "DSC03334.jpg",
-  "DSC03530-Enhanced-NR.jpg",
-  "DSC03586.jpg",
-  "DSC03707.jpg",
-  "DSC03758.jpg",
-  "DSC03776.jpg",
-  "DSC03778.jpg",
-  "DSC03834.jpg",
-  "DSC03912.jpg",
-  "DSC04494.jpg",
-  "DSC04811-Enhanced-NR.jpg",
-  "DSC04887-Enhanced-NR.jpg",
-  "DSC06637-Enhanced-NR.jpg",
-  "DSC06734.jpg"
+  {
+    "file": "CMP00006.jpg",
+    "w": 1365,
+    "h": 2048
+  },
+  {
+    "file": "CMP02078.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP02331.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP03043-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP04273.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP04522.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP04730.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP05162.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06607-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06618-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1514
+  },
+  {
+    "file": "CMP06626-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06655-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06834-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06848-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06862-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06866-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP06890-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP08555.jpg",
+    "w": 1341,
+    "h": 2048
+  },
+  {
+    "file": "CMP08600.jpg",
+    "w": 1365,
+    "h": 2048
+  },
+  {
+    "file": "CMP08606.jpg",
+    "w": 1460,
+    "h": 2048
+  },
+  {
+    "file": "CMP08621.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP08767.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP09026.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP09521-Enhanced-NR.jpg",
+    "w": 1638,
+    "h": 2048
+  },
+  {
+    "file": "CMP09592.jpg",
+    "w": 1365,
+    "h": 2048
+  },
+  {
+    "file": "CMP09620.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP09676.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP09839.jpg",
+    "w": 1638,
+    "h": 2048
+  },
+  {
+    "file": "CMP09881.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "CMP09909-Enhanced-NR.jpg",
+    "w": 1638,
+    "h": 2048
+  },
+  {
+    "file": "CMP09986.jpg",
+    "w": 1365,
+    "h": 2048
+  },
+  {
+    "file": "DSC00016-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC00028-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC00499-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC00981-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC02453.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC02460.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC02466.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC02479.jpg",
+    "w": 1365,
+    "h": 2048
+  },
+  {
+    "file": "DSC02572.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC02579.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC02812.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC02974.jpg",
+    "w": 2048,
+    "h": 1375
+  },
+  {
+    "file": "DSC02981.jpg",
+    "w": 1365,
+    "h": 2048
+  },
+  {
+    "file": "DSC03014.jpg",
+    "w": 1365,
+    "h": 2048
+  },
+  {
+    "file": "DSC03034.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03115.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03141.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03199.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03324-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03334.jpg",
+    "w": 1848,
+    "h": 2048
+  },
+  {
+    "file": "DSC03530-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1370
+  },
+  {
+    "file": "DSC03586.jpg",
+    "w": 1638,
+    "h": 2048
+  },
+  {
+    "file": "DSC03707.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03758.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03776.jpg",
+    "w": 1638,
+    "h": 2048
+  },
+  {
+    "file": "DSC03778.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03834.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC03912.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC04494.jpg",
+    "w": 1638,
+    "h": 2048
+  },
+  {
+    "file": "DSC04811-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC04887-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC06637-Enhanced-NR.jpg",
+    "w": 2048,
+    "h": 1365
+  },
+  {
+    "file": "DSC06734.jpg",
+    "w": 1365,
+    "h": 2048
+  }
 ]

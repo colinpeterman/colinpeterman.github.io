@@ -153,10 +153,14 @@
       const grid = document.getElementById('gallery');
       grid.innerHTML = '';
 
-      photos.forEach((filename, i) => {
+      photos.forEach((photo, i) => {
+        const filename = photo.file || photo;
         const item = document.createElement('div');
         item.className = 'masonry-item';
-        
+
+        if (photo.w && photo.h) {
+          item.style.aspectRatio = `${photo.w} / ${photo.h}`;
+        }
 
         const img = document.createElement('img');
         img.alt = `Licensing photo ${i + 1}`;
@@ -167,7 +171,7 @@
             if (entry.isIntersecting) {
               img.src = `images/licensing/${filename}`;
               img.onload = () => img.classList.add('loaded');
-              img.onerror = () => { img.src = ''; img.style.minHeight = '200px'; };
+              img.onerror = () => { item.style.display = 'none'; };
               observer.unobserve(img);
             }
           });
@@ -182,7 +186,7 @@
     // Lightbox
     function openLightbox(idx) {
       currentIdx = idx;
-      document.getElementById('lb-img').src = `images/licensing/${photos[idx]}`;
+      document.getElementById('lb-img').src = `images/licensing/${photos[idx].file || photos[idx]}`;
       document.getElementById('lightbox').classList.add('open');
       updateCounter();
       document.body.style.overflow = 'hidden';
@@ -196,13 +200,13 @@
 
     function lbPrev() {
       currentIdx = (currentIdx - 1 + photos.length) % photos.length;
-      document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx]}`;
+      document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx].file || photos[currentIdx]}`;
       updateCounter();
     }
 
     function lbNext() {
       currentIdx = (currentIdx + 1) % photos.length;
-      document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx]}`;
+      document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx].file || photos[currentIdx]}`;
       updateCounter();
     }
 
