@@ -206,22 +206,22 @@ function collides(p) {
 }
 
 // ── Update ───────────────────────────────────────────────
-function update() {
+function update(dt) {
   if (state !== 'running') return;
   tick++;
-  propSpin += 0.38;
+  propSpin += 0.38 * dt;
 
-  drone.vy   += GRAVITY;
-  drone.y    += drone.vy;
+  drone.vy   += GRAVITY * dt;
+  drone.y    += drone.vy * dt;
   drone.tilt  = Math.max(-28, Math.min(38, drone.vy * 3.8));
 
   if (drone.y - DH / 2 < 0 || drone.y + DH / 2 > H) { die(); return; }
 
-  pipeTimer++;
+  pipeTimer += dt;
   if (pipeTimer >= PIPE_INTERVAL) { spawnPipe(); pipeTimer = 0; }
 
   for (const p of pipes) {
-    p.x -= pipeSpd;
+    p.x -= pipeSpd * dt;
     if (!p.passed && p.x + PIPE_W < drone.x) {
       p.passed = true; score++;
       if (score > hiScore) {
@@ -229,21 +229,19 @@ function update() {
         localStorage.setItem('pp_fly_hi', hiScore);
         newBest = true;
       }
-      // Score milestone popup every point
-      popups.push({ text: score.toString(), x: W / 2, y: H * 0.28, life: 1, decay: 0.03 });
     }
     if (collides(p)) { die(); return; }
   }
   pipes = pipes.filter(p => p.x + PIPE_W > -10);
 
-  // Gradually increase speed every 5 points
   pipeSpd = Math.min(PIPE_SPD_MAX, PIPE_SPD_BASE + score * 0.1);
 
-  bgScroll -= pipeSpd * 0.25;
+  bgScroll -= pipeSpd * 0.25 * dt;
 
-  particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life -= p.decay; });
+  particles.forEach(p => {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.1 * dt; p.life -= p.decay * dt;
+  });
   particles = particles.filter(p => p.life > 0);
-
 }
 
 function die() { state = 'dead'; spawnCrash(); }
@@ -435,28 +433,135 @@ function draw() {
 
   // Dead
   if (state === 'dead') {
-    ctx.fillStyle = 'rgba(7,8,15,0.6)';
-    ctx.fillRect(0, H * 0.3, W, newBest ? 172 : 130);
-    ctx.fillStyle = 'rgba(255,255,255,0.92)';
-    ctx.font = `52px 'Bebas Neue', sans-serif`;
-    ctx.fillText('CRASHED', W / 2, H * 0.4);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = `24px 'Bebas Neue', sans-serif`;
-    ctx.fillText(`SCORE  ${score}`, W / 2, H * 0.4 + 34);
+    const medal = score >= 50 ? 'gold' : score >= 25 ? 'silver' : score >= 10 ? 'bronze' : null;
+    const cx = W / 2;
+
+    // Measure total content height
+    let totalH = 24 + 52 + 16 + 28; // padding + CRASHED + gap + SCORE
+    if (newBest) totalH += 14 + 28;  // gap + NEW BEST
+    if (medal)   totalH += 20 + 64 + 20; // gap + medal + label gap
+    totalH += 18 + 20 + 16; // gap + tap + padding
+
+    const boxTop = H * 0.5 - totalH / 2;
+
+    // Box with border
+    ctx.fillStyle = 'rgba(5,6,14,0.82)';
+    ctx.beginPath();
+    ctx.roundRect(16, boxTop, W - 32, totalH, 8);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(16, boxTop, W - 32, totalH, 8);
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    let y = boxTop + 24;
+
+    // CRASHED
+    y += 52;
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.font = `56px 'Bebas Neue', sans-serif`;
+    ctx.fillText('CRASHED', cx, y);
+
+    // Divider
+    y += 12;
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - 60, y); ctx.lineTo(cx + 60, y);
+    ctx.stroke();
+
+    // SCORE
+    y += 24;
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = `26px 'Bebas Neue', sans-serif`;
+    ctx.fillText(`SCORE  ${score}`, cx, y);
+
+    // NEW BEST
     if (newBest) {
-      ctx.fillStyle = `rgba(255,${Math.floor(180 + Math.sin(tick * 0.15) * 60)},40,0.95)`;
-      ctx.font = `28px 'Bebas Neue', sans-serif`;
-      ctx.fillText('✦  NEW BEST  ✦', W / 2, H * 0.4 + 66);
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.font = `14px 'Barlow Condensed', sans-serif`;
-      ctx.fillText('tap to fly again', W / 2, H * 0.4 + 90);
-    } else {
-      ctx.fillStyle = 'rgba(255,255,255,0.28)';
-      ctx.font = `15px 'Barlow Condensed', sans-serif`;
-      ctx.fillText('tap to fly again', W / 2, H * 0.4 + 60);
+      y += 22;
+      ctx.fillStyle = `rgba(255,${Math.floor(185 + Math.sin(tick * 0.15) * 55)},40,0.95)`;
+      ctx.font = `24px 'Bebas Neue', sans-serif`;
+      ctx.fillText('✦  NEW BEST  ✦', cx, y);
     }
+
+    // MEDAL
+    if (medal) {
+      y += 28;
+      drawMedal(cx, y + 32, medal);
+      y += 64 + 20;
+    }
+
+    // TAP
+    y += 18;
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = `700 13px 'Barlow Condensed', sans-serif`;
+    ctx.fillText('TAP TO FLY AGAIN', cx, y);
   }
 
+}
+
+// ── Medal ────────────────────────────────────────────────
+function drawMedal(x, y, tier) {
+  const colors = {
+    bronze: { mid: '#cd7f32', dark: '#8b4513', light: '#f0c080', glow: 'rgba(205,127,50,' },
+    silver: { mid: '#c0c0c0', dark: '#808080', light: '#f0f0f0', glow: 'rgba(192,192,192,' },
+    gold:   { mid: '#ffd700', dark: '#b8860b', light: '#fff9a0', glow: 'rgba(255,215,0,'  }
+  };
+  const labels = { bronze: 'BRONZE', silver: 'SILVER', gold: 'GOLD' };
+  const { mid, dark, light, glow } = colors[tier];
+  const R = 32;
+
+  // Outer glow
+  const glowGrad = ctx.createRadialGradient(x, y, R * 0.5, x, y, R * 2.2);
+  glowGrad.addColorStop(0, glow + '0.35)');
+  glowGrad.addColorStop(1, glow + '0)');
+  ctx.fillStyle = glowGrad;
+  ctx.beginPath();
+  ctx.arc(x, y, R * 2.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Outer ring
+  const ring = ctx.createRadialGradient(x - R * 0.35, y - R * 0.35, 2, x, y, R);
+  ring.addColorStop(0, light);
+  ring.addColorStop(0.55, mid);
+  ring.addColorStop(1, dark);
+  ctx.fillStyle = ring;
+  ctx.beginPath();
+  ctx.arc(x, y, R, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner recessed circle
+  const inner = ctx.createRadialGradient(x - 5, y - 5, 1, x, y, R * 0.7);
+  inner.addColorStop(0, light);
+  inner.addColorStop(1, mid);
+  ctx.fillStyle = inner;
+  ctx.beginPath();
+  ctx.arc(x, y, R * 0.7, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rim detail
+  ctx.beginPath();
+  ctx.arc(x, y, R, 0, Math.PI * 2);
+  ctx.strokeStyle = light;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.4;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Star
+  ctx.fillStyle = dark;
+  ctx.font = `bold ${R * 0.9}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('★', x, y + 1);
+  ctx.textBaseline = 'alphabetic';
+
+  // Label
+  ctx.fillStyle = mid;
+  ctx.font = `700 13px 'Barlow Condensed', sans-serif`;
+  ctx.fillText(labels[tier], x, y + R + 18);
 }
 
 // ── Back button ──────────────────────────────────────────
@@ -469,8 +574,16 @@ function goBack() {
 }
 
 // ── Loop ─────────────────────────────────────────────────
-function loop() { update(); draw(); requestAnimationFrame(loop); }
-loop();
+let lastTime = 0;
+function loop(ts) {
+  const deltaMs = lastTime ? Math.min(ts - lastTime, 50) : 16.667;
+  const dt = deltaMs / 16.667;
+  lastTime = ts;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
