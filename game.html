@@ -17,7 +17,7 @@
       touch-action: none;
       overscroll-behavior: none;
     }
-    canvas { display: block; }
+    canvas { display: block; will-change: transform; }
   </style>
 </head>
 <body>
@@ -94,7 +94,7 @@ function resetDrone() {
   drone.tilt = 0;
 }
 
-// ── Stars (fixed, pre-generated) ─────────────────────────
+// ── Stars — pre-rendered to offscreen canvas ─────────────
 const stars = Array.from({ length: 55 }, () => ({
   x: Math.random() * W,
   y: Math.random() * H * 0.7,
@@ -102,6 +102,18 @@ const stars = Array.from({ length: 55 }, () => ({
   a: 0.2 + Math.random() * 0.5,
   twinkle: Math.random() * Math.PI * 2
 }));
+
+const starCanvas = document.createElement('canvas');
+starCanvas.width = W; starCanvas.height = H;
+const starCtx = starCanvas.getContext('2d');
+stars.forEach(s => {
+  starCtx.globalAlpha = s.a;
+  starCtx.fillStyle = '#ffffff';
+  starCtx.beginPath();
+  starCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+  starCtx.fill();
+});
+starCtx.globalAlpha = 1;
 
 // ── BG buildings (parallax, pre-generated) ───────────────
 const bgBuilds = [];
@@ -346,28 +358,32 @@ function drawDrone(x, y, tilt, dead) {
   ctx.restore();
 }
 
+// ── Sky gradient cache ────────────────────────────────────
+let skyCache = null, lastSpeedT = -1;
+function getSky(speedT) {
+  if (Math.abs(speedT - lastSpeedT) < 0.01 && skyCache) return skyCache;
+  lastSpeedT = speedT;
+  const top = lerpColor('#07080f', '#1a0608', speedT);
+  const mid = lerpColor('#0d1022', '#220e0a', speedT);
+  const bot = lerpColor('#16102e', '#3a1005', speedT);
+  skyCache = ctx.createLinearGradient(0, 0, 0, H);
+  skyCache.addColorStop(0,   top);
+  skyCache.addColorStop(0.7, mid);
+  skyCache.addColorStop(1,   bot);
+  return skyCache;
+}
+
 // ── Draw ─────────────────────────────────────────────────
 function draw() {
-  // Sky — shifts from cold night → warm city glow as speed increases
   const speedT = Math.max(0, Math.min(1, (pipeSpd - PIPE_SPD_BASE) / (PIPE_SPD_MAX - PIPE_SPD_BASE)));
-  const skyTop = lerpColor('#07080f', '#1a0608', speedT);
-  const skyMid = lerpColor('#0d1022', '#220e0a', speedT);
-  const skyBot = lerpColor('#16102e', '#3a1005', speedT);
-  const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0,   skyTop);
-  sky.addColorStop(0.7, skyMid);
-  sky.addColorStop(1,   skyBot);
-  ctx.fillStyle = sky;
+
+  // Sky
+  ctx.fillStyle = getSky(speedT);
   ctx.fillRect(0, 0, W, H);
 
-  // Stars
-  stars.forEach(s => {
-    ctx.globalAlpha = s.a * (0.7 + 0.3 * Math.sin(tick * 0.018 + s.twinkle));
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
+  // Stars — single drawImage instead of 55 arc calls
+  ctx.globalAlpha = 0.7 + 0.3 * Math.sin(tick * 0.018);
+  ctx.drawImage(starCanvas, 0, 0);
   ctx.globalAlpha = 1;
 
   // Distant bg buildings (parallax)
@@ -425,10 +441,10 @@ function draw() {
   if (state === 'idle') {
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
     ctx.font = `56px 'Bebas Neue', sans-serif`;
-    ctx.fillText('PHANTOM FLY', W / 2, H * 0.4);
+    ctx.fillText('PHANTOM FLY', W / 2, H * 0.32);
     ctx.fillStyle = 'rgba(255,255,255,0.32)';
     ctx.font = `16px 'Barlow Condensed', sans-serif`;
-    ctx.fillText('TAP  ·  CLICK  ·  SPACE  TO  FLY', W / 2, H * 0.4 + 30);
+    ctx.fillText('TAP  ·  CLICK  ·  SPACE  TO  FLY', W / 2, H * 0.32 + 30);
   }
 
   // Dead
