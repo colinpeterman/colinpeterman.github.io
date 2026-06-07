@@ -120,9 +120,7 @@ function openContactModal(subject) {
 function closeContactModal() {
   document.getElementById('contact-modal').classList.remove('open');
   document.body.style.overflow = '';
-  // Restore inquiry controls if there are items in the cart
+  // Always clear inline style — let updateCart()'s class handle visibility
   const controls = document.getElementById('inquiry-controls');
-  if (controls && typeof inquirySet !== 'undefined' && inquirySet.size > 0) {
-    controls.style.display = '';
-  }
+  if (controls) controls.style.display = '';
 }
