@@ -32,7 +32,12 @@
       background: rgba(0,0,0,0.15);
     }
 
-    .gallery-nav, .pay-main, .gallery-footer {
+    .gallery-nav {
+      position: relative;
+      z-index: 10;
+    }
+
+    .pay-main, .gallery-footer {
       position: relative;
       z-index: 1;
     }
@@ -156,7 +161,6 @@
 
   <div class="pay-main">
   <div class="pay-card">
-    <div class="pay-logo">Phantom Photos &nbsp;&mdash;&nbsp; Colin Peterman</div>
     <div class="pay-title">Payment</div>
 
     <!-- PRICE: update the amount here -->
