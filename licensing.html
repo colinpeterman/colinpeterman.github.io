@@ -460,6 +460,9 @@
         });
       }
       loadRow();
+
+      // Re-sync cart visibility after gallery renders (covers session-restore race)
+      updateCart();
     }
 
     function toggleInquiryByFilename(filename) {
@@ -491,10 +494,17 @@
     }
 
     function updateCart() {
-      const controls = document.getElementById('inquiry-controls');
+      const controls  = document.getElementById('inquiry-controls');
+      const badge     = document.getElementById('inquiry-cart-badge');
+      const label     = document.getElementById('inquiry-cart-label');
+      // Guard: if elements aren't in the DOM yet, retry on next frame
+      if (!controls || !badge || !label) {
+        requestAnimationFrame(updateCart);
+        return;
+      }
       const count = inquirySet.size;
-      document.getElementById('inquiry-cart-badge').textContent = count;
-      document.getElementById('inquiry-cart-label').textContent = `Inquire about ${count} photo${count === 1 ? '' : 's'}`;
+      badge.textContent = count;
+      label.textContent = `Inquire about ${count} photo${count === 1 ? '' : 's'}`;
       controls.classList.toggle('visible', count > 0);
       // If filter is active but selection is now empty, turn it off
       if (count === 0) deactivateFilter();
