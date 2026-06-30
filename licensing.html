@@ -557,9 +557,16 @@
     }
 
     // Lightbox
+    function setLightboxImage(idx) {
+      const img = document.getElementById('lb-img');
+      img.classList.remove('lb-loaded');
+      img.onload = () => img.classList.add('lb-loaded');
+      img.src = `images/licensing/${photos[idx].file || photos[idx]}`;
+    }
+
     function openLightbox(idx) {
       currentIdx = idx;
-      document.getElementById('lb-img').src = `images/licensing/${photos[idx].file || photos[idx]}`;
+      setLightboxImage(idx);
       document.getElementById('lightbox').classList.add('open');
       document.getElementById('inquiry-controls').classList.add('lb-open');
       updateCounter();
@@ -576,14 +583,14 @@
 
     function lbPrev() {
       currentIdx = (currentIdx - 1 + photos.length) % photos.length;
-      document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx].file || photos[currentIdx]}`;
+      setLightboxImage(currentIdx);
       updateCounter();
       updateInquiryBtn();
     }
 
     function lbNext() {
       currentIdx = (currentIdx + 1) % photos.length;
-      document.getElementById('lb-img').src = `images/licensing/${photos[currentIdx].file || photos[currentIdx]}`;
+      setLightboxImage(currentIdx);
       updateCounter();
       updateInquiryBtn();
     }
