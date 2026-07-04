@@ -33,3 +33,4 @@ git add . && git commit -m "add photos" && git push
 - Hosted: GitHub Pages, public repo required (free plan)
 - Custom domain: www.colinpeterman.com (set in GitHub Pages settings + CNAME file)
 - DNS managed in Squarespace
+
