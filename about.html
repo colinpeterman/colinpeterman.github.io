@@ -25,7 +25,7 @@
   <meta name="twitter:description" content="About Colin Peterman — Cincinnati based photographer and videographer." />
   <meta name="twitter:image" content="https://www.colinpeterman.com/images/main/DJI_0188-Enhanced-NR.webp" />
   <link rel="canonical" href="https://www.colinpeterman.com/about.html" />
-  <link rel="stylesheet" href="style.css?v=43" />
+  <link rel="stylesheet" href="style.css?v=44" />
 </head>
 <body class="gallery-page">
 
@@ -179,10 +179,11 @@
     }, { threshold: 0.01, rootMargin: '0px 0px 0px 0px' });
     revealEls.forEach(el => revealObserver.observe(el));
 
-    // Block right-click, selection, and copy on page images
+    // Block right-click, selection, copy, and drag on page images
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('copy', e => e.preventDefault());
     document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
   </script>
 </body>
 </html>
