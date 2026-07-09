@@ -10,7 +10,12 @@ Photography portfolio for Colin Peterman. Static site hosted on GitHub Pages at 
 - Images are WebP only — JPEGs are converted and deleted by generate-photos.py
 - Licensing page has SHA-256 client-side password gate (hash in licensing.html)
 - style.css uses CSS custom properties (--font-disp, --font-cond, --nav-h, --bg-dark, etc.)
-- contact-modal.js is shared across all pages — injects modal HTML at runtime
+- Shared JS injected at runtime: site-chrome.js (nav + footer, owns toggleNav/closeNav),
+  contact-modal.js (contact modal + Formspree, includes _gotcha honeypot),
+  gallery.js (row-based lazy loader used by sports + licensing)
+- Pages place `<div data-site-nav></div>` / `<div data-site-footer></div>` placeholders
+- Sports gallery is intentionally view-only (no lightbox); licensing has the lightbox + inquiry cart
+- When editing style.css, bump the `?v=NN` cache-buster on every page's stylesheet link
 
 ## Adding photos workflow
 
@@ -26,7 +31,7 @@ git add . && git commit -m "add photos" && git push
 - Dark background: `--bg-dark`
 - Nav height: `--nav-h`
 - Gallery pages use class `gallery-page` on body; home uses `hero-page`
-- All pages share the same nav structure and contact-modal.js
+- All pages share nav/footer via site-chrome.js and the modal via contact-modal.js
 
 ## DNS / hosting
 

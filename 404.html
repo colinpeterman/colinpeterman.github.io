@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H2D46TFCS3"></script>
   <script>
@@ -9,27 +11,19 @@
     gtag('js', new Date());
     gtag('config', 'G-H2D46TFCS3');
   </script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Page Not Found | Phantom Photos</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon/favicon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png" />
-  <link rel="stylesheet" href="/style.css?v=45" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="/style.css?v=46" />
 </head>
 <body class="gallery-page">
 
-  <nav class="gallery-nav">
-    <a href="/" class="nav-logo">Phantom Photos</a>
-    <button class="nav-toggle" aria-label="Toggle menu" onclick="toggleNav(this)">
-      <span></span><span></span><span></span>
-    </button>
-    <ul class="nav-links" id="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/sports.html">Sports</a></li>
-      <li><a href="/licensing.html">Licensing</a></li>
-      <li><a href="#" onclick="openContactModal();return false;">Contact</a></li>
-    </ul>
-  </nav>
+  <!-- NAV (injected by site-chrome.js) -->
+  <div data-site-nav></div>
 
   <div class="pw-gate" style="position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:#0d0d0d;">
     <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:28px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -38,17 +32,7 @@
     <a href="/" style="display:inline-block;background:#fff;color:#0d0d0d;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;padding:13px 40px;border-radius:8px;text-decoration:none;">Back to Home</a>
   </div>
 
-  <script>
-    function closeNav() {
-      document.getElementById('nav-links').classList.remove('open');
-      document.querySelector('nav').classList.remove('menu-open');
-    }
-
-    function toggleNav(btn) {
-      document.getElementById('nav-links').classList.toggle('open');
-      document.querySelector('nav').classList.toggle('menu-open');
-    }
-  </script>
+  <script src="/site-chrome.js"></script>
   <script src="/contact-modal.js"></script>
 </body>
 </html>

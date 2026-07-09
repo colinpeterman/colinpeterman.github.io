@@ -10,11 +10,11 @@ document.addEventListener('contextmenu', e => {
   modal.id = 'contact-modal';
   modal.innerHTML = `
     <div class="cm-overlay" onclick="closeContactModal()"></div>
-    <div class="cm-panel">
+    <div class="cm-panel" role="dialog" aria-modal="true" aria-labelledby="cm-title">
       <button class="cm-close" onclick="closeContactModal()" aria-label="Close">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
-      <h2 class="cm-title">Get In Touch</h2>
+      <h2 class="cm-title" id="cm-title">Get In Touch</h2>
       <p class="cm-sub">Fill out the form and I'll get back to you soon.</p>
 
       <div class="cm-success" id="cm-success" style="display:none;">
@@ -24,6 +24,8 @@ document.addEventListener('contextmenu', e => {
 
       <form class="cm-form" id="cm-form" action="https://formspree.io/f/meedydvq" method="POST">
         <input type="hidden" name="_subject" value="New message from colinpeterman.com" />
+        <!-- Honeypot: hidden from humans; bots that fill it get silently dropped by Formspree -->
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <div class="cm-row">
           <div class="cm-group">
             <label for="cm-first">First Name</label>
@@ -88,14 +90,32 @@ document.addEventListener('contextmenu', e => {
     }
   });
 
-  // Close on Escape
+  // Close on Escape; trap Tab inside the modal while it's open
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeContactModal();
+    if (e.key !== 'Tab') return;
+    const m = document.getElementById('contact-modal');
+    if (!m.classList.contains('open')) return;
+    const focusables = Array.from(m.querySelectorAll('button, input, textarea'))
+      .filter(el => el.offsetParent !== null && el.tabIndex !== -1);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    } else if (!m.contains(document.activeElement)) {
+      e.preventDefault(); first.focus();
+    }
   });
 })();
 
+let cmOpener = null;
+
 function openContactModal(subject) {
   const modal = document.getElementById('contact-modal');
+  cmOpener = document.activeElement;
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
   const controls = document.getElementById('inquiry-controls');
@@ -115,6 +135,7 @@ function openContactModal(subject) {
       ? `${subject} — colinpeterman.com`
       : 'New message from colinpeterman.com';
   }
+  document.getElementById('cm-first').focus();
 }
 
 function closeContactModal() {
@@ -123,4 +144,7 @@ function closeContactModal() {
   // Always clear inline style — let updateCart()'s class handle visibility
   const controls = document.getElementById('inquiry-controls');
   if (controls) controls.style.display = '';
+  // Return focus to whatever opened the modal
+  if (cmOpener && typeof cmOpener.focus === 'function') cmOpener.focus();
+  cmOpener = null;
 }

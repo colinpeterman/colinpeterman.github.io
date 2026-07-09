@@ -16,13 +16,18 @@ Personal photography portfolio for Colin Peterman. Hosted on GitHub Pages at [co
 ## File Structure
 
 ```
-├── index.html              ← Home page (masonry hero)
-├── sports.html             ← Sports gallery
-├── licensing.html          ← Password-gated licensing gallery
+├── index.html              ← Home page (masonry hero, hidden game easter egg)
+├── about.html              ← Bio, services, client logos
+├── sports.html             ← Sports gallery (view-only, no lightbox)
+├── licensing.html          ← Password-gated licensing gallery with inquiry cart
+├── pay.html                ← Stripe payment link page (noindex)
+├── game.html               ← "Phantom Fly" easter egg (opens from home logo)
 ├── contact.html            ← Redirects to index (modal handles contact)
 ├── 404.html                ← Custom 404 page
 ├── style.css               ← All global styles
+├── site-chrome.js          ← Shared nav + footer, injected at runtime
 ├── contact-modal.js        ← Shared contact modal + Formspree submission
+├── gallery.js              ← Shared row-based lazy loader for gallery pages
 ├── generate-photos.py      ← Run after adding photos — converts to WebP, updates JSON
 ├── CNAME                   ← Custom domain config for GitHub Pages
 ├── robots.txt              ← Blocks AI crawlers, protects licensing images
@@ -32,11 +37,17 @@ Personal photography portfolio for Colin Peterman. Hosted on GitHub Pages at [co
 │   ├── sports.json         ← Sports gallery photo list (auto-generated)
 │   └── licensing.json      ← Licensing gallery photo list (auto-generated)
 └── images/
-    ├── favicon/            ← Favicon image
+    ├── favicon/            ← Favicons
+    ├── og-image.jpg        ← Social share preview (1200×630)
     ├── main/               ← Home page hero photos
+    ├── about/              ← About page photo
+    ├── checkout/           ← Pay page background
+    ├── clients/            ← Client logos for the About page
     ├── sports/             ← Sports gallery photos
+    ├── sports_thumbs/      ← Auto-generated sports thumbnails
     ├── licensing/          ← Licensing gallery photos (blocked in robots.txt)
-    └── licensing_lock/     ← Lock icon for licensing gate
+    ├── licensing_thumbs/   ← Auto-generated licensing thumbnails
+    └── licensing_lock/     ← Background for the licensing password gate
 ```
 
 ---

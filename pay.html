@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H2D46TFCS3"></script>
   <script>
@@ -9,13 +11,15 @@
     gtag('js', new Date());
     gtag('config', 'G-H2D46TFCS3');
   </script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Phantom Photos | Payment</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="images/favicon/favicon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-touch-icon.png" />
-  <link rel="stylesheet" href="style.css?v=45" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="style.css?v=46" />
   <style>
     body {
       background: var(--bg-dark);
@@ -29,7 +33,7 @@
       position: fixed;
       inset: 0;
       z-index: 0;
-      background: url('images/checkout/000117700002.jpg') center/cover no-repeat;
+      background: url('images/checkout/000117700002.webp') center/cover no-repeat;
       transform: scale(1);
     }
 
@@ -153,19 +157,8 @@
 
   <div class="pay-bg"></div>
 
-  <!-- NAV -->
-  <nav class="gallery-nav">
-    <a href="/" class="nav-logo">Phantom Photos</a>
-    <button class="nav-toggle" aria-label="Toggle menu" onclick="toggleNav(this)">
-      <span></span><span></span><span></span>
-    </button>
-    <ul class="nav-links" id="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="sports.html">Sports</a></li>
-      <li><a href="licensing.html">Licensing</a></li>
-      <li><a href="#" onclick="closeNav();openContactModal();return false;">Contact</a></li>
-    </ul>
-  </nav>
+  <!-- NAV (injected by site-chrome.js) -->
+  <div data-site-nav></div>
 
   <div class="pay-main">
   <div class="pay-card">
@@ -189,30 +182,10 @@
   </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="gallery-footer">
-    <div class="footer-social">
-      <a href="https://www.instagram.com/phantomphotos_/" target="_blank" rel="noopener" aria-label="Instagram">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-      </a>
-      <a href="https://twitter.com/phantomphotos_" target="_blank" rel="noopener" aria-label="Twitter">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </a>
-      <a href="mailto:colinpeterman@gmail.com" aria-label="Email">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-      </a>
-    </div>
-  </footer>
+  <!-- FOOTER (injected by site-chrome.js) -->
+  <div data-site-footer></div>
 
-  <script>
-    function closeNav() {
-      document.getElementById("nav-links").classList.remove("open");
-      document.querySelector("nav").classList.remove("menu-open");
-    }
-    function toggleNav(btn) {
-      document.getElementById('nav-links').classList.toggle('open');
-    }
-  </script>
+  <script src="site-chrome.js"></script>
   <script src="contact-modal.js"></script>
 
 </body>
