@@ -135,7 +135,10 @@ function openContactModal(subject) {
       ? `${subject} — colinpeterman.com`
       : 'New message from colinpeterman.com';
   }
-  document.getElementById('cm-first').focus();
+  // Don't auto-focus on touch devices — it pops the keyboard open immediately
+  if (!window.matchMedia('(pointer: coarse)').matches) {
+    document.getElementById('cm-first').focus();
+  }
 }
 
 function closeContactModal() {
