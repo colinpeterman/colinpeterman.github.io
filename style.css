@@ -160,6 +160,7 @@ nav {
    ======================================== */
 
 .gallery-page { min-height: 100vh; background: var(--bg-dark); }
+.gallery-page.about-page { background: var(--bg); }
 
 .gallery-nav {
   position: fixed;
@@ -806,6 +807,8 @@ nav {
   display: grid;
   grid-template-columns: 1fr 1.15fr;
   min-height: clamp(420px, 45vw, 900px);
+  max-width: 1600px;
+  margin: 0 auto;
   background: var(--bg);
 }
 
@@ -835,7 +838,7 @@ nav {
   justify-content: center;
   align-items: flex-start;
   text-align: left;
-  padding: 80px 72px;
+  padding: 80px 72px 80px 110px;
 }
 
 .about-eyebrow {
