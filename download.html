@@ -323,14 +323,13 @@
         }
       }
 
-      const CONCURRENCY = 4;
       const controllers = files.map(() => new AbortController());
       const fetchPromises = new Array(files.length);
       
       function ensureStarted(i) {
         if (i < files.length && !fetchPromises[i]) {
           const targetUrl = `${PhantomDelivery.WORKER_BASE_URL}${files[i].url}?bulk=1`;
-          console.log(`[QUEUE] Starting prefetch stream for File #${i + 1} (${files[i].name}) at URL: ${targetUrl}`);
+          console.log(`[QUEUE] Starting stream for File #${i + 1} (${files[i].name}) at URL: ${targetUrl}`);
           fetchPromises[i] = fetch(targetUrl, { signal: controllers[i].signal });
         }
       }
@@ -349,13 +348,32 @@
         const { downloadZip } = await import('./client-zip.js');
         console.log('[DOWNLOAD] client-zip module loaded successfully.');
 
-        for (let i = 0; i < Math.min(CONCURRENCY, files.length); i++) ensureStarted(i);
+        // Initialize only the very first file stream to start the chain.
+        // Lookahead downloads will be evaluated dynamically inside entries().
+        ensureStarted(0);
 
         async function* entries() {
           for (let i = 0; i < files.length; i++) {
-            ensureStarted(i + CONCURRENCY);
             currentFileIndex = i;
-            console.log(`[ZIP-COMPILER] Processing File #${i + 1} (${files[i].name}) in compilation loop.`);
+            
+            // Guarantee the current target fetch is fully initialized.
+            ensureStarted(i);
+            
+            // Lookahead prefetching rule:
+            // Only prefetch future files if the current file is NOT a video.
+            // This allows heavy video streams 100% of the TCP multiplex window,
+            // preventing the socket head-of-line blocking that causes Chrome to stall.
+            const isVideo = files[i].type && files[i].type.startsWith('video/');
+            if (!isVideo) {
+              const LOOKAHEAD_CONCURRENCY = 4;
+              for (let lookahead = 1; lookahead <= LOOKAHEAD_CONCURRENCY; lookahead++) {
+                ensureStarted(i + lookahead);
+              }
+            } else {
+              console.log(`[ZIP-COMPILER] Video detected on File #${i + 1} (${files[i].name}). Pausing future lookahead prefetching to prevent socket buffer contention.`);
+            }
+
+            console.log(`[ZIP-COMPILER] Awaiting active response for File #${i + 1} (${files[i].name}) in compilation loop.`);
             const res = await fetchPromises[i];
             if (!res.ok) {
               console.error(`[ZIP-COMPILER] HTTP error fetching File #${i + 1} (${files[i].name}): Status ${res.status}`);
