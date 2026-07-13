@@ -651,12 +651,16 @@ nav {
 }
 
 .delivery-panel-wide { max-width: 640px; }
+.delivery-panel-full { max-width: 1200px; }
 
 .delivery-preview-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-top: 28px;
+}
+.delivery-preview-grid.expanded {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
 @media (max-width: 520px) {
   .delivery-preview-grid { grid-template-columns: repeat(2, 1fr); }

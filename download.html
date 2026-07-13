@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=62" />
+  <link rel="stylesheet" href="style.css?v=63" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -28,7 +28,7 @@
   </div>
 
   <div id="delivery-wrap" style="display:none;">
-    <div class="delivery-panel delivery-panel-wide">
+    <div class="delivery-panel delivery-panel-wide" id="content-panel">
       <h1 class="delivery-heading" id="client-heading">Your Photos</h1>
       <p class="delivery-hint" id="expiry-hint"></p>
 
@@ -95,6 +95,8 @@
       const files = window.__deliveryFiles || [];
       const grid = document.getElementById('preview-grid');
       grid.innerHTML = '';
+      grid.classList.toggle('expanded', gridExpanded);
+      document.getElementById('content-panel').classList.toggle('delivery-panel-full', gridExpanded);
 
       const visibleFiles = gridExpanded ? files : files.slice(0, 4);
 

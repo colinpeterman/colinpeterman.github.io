@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=62" />
+  <link rel="stylesheet" href="style.css?v=63" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -49,7 +49,7 @@
 
         <div class="delivery-field">
           <label for="expiry-days">Link expires after (days)</label>
-          <input type="number" id="expiry-days" value="14" min="1" />
+          <input type="number" id="expiry-days" value="14" min="1" autocomplete="off" />
         </div>
 
         <div class="delivery-field">
@@ -71,6 +71,7 @@
             <input type="text" class="pw-input" id="result-link" readonly />
             <button class="pw-submit" id="copy-link-btn" onclick="copyLink()">Copy</button>
           </div>
+          <button class="pw-submit" id="new-delivery-btn" onclick="resetDeliveryForm()" style="margin-top:16px;">+ New Delivery</button>
         </div>
 
         <div class="delivery-error" id="delivery-error" role="alert" aria-live="polite"></div>
@@ -223,6 +224,24 @@
         errEl.textContent = err.message || String(err);
         startBtn.disabled = false;
       }
+    }
+
+    function resetDeliveryForm() {
+      document.getElementById('client-name').value = '';
+      document.getElementById('expiry-days').value = 14;
+      fileInput.value = '';
+      fileCountHint.textContent = 'No files selected';
+      startBtn.disabled = true;
+
+      const progressWrap = document.getElementById('progress-wrap');
+      progressWrap.style.display = 'none';
+      document.getElementById('progress-fill').style.width = '0%';
+      document.getElementById('progress-text').textContent = '';
+
+      document.getElementById('result-wrap').style.display = 'none';
+      document.getElementById('delivery-error').textContent = '';
+
+      document.getElementById('client-name').focus();
     }
 
     function copyLink() {

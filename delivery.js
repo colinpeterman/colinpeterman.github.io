@@ -9,15 +9,15 @@
   const ADMIN_KEY_STORAGE = 'pp_admin_key';
 
   function getAdminKey() {
-    return sessionStorage.getItem(ADMIN_KEY_STORAGE) || '';
+    return localStorage.getItem(ADMIN_KEY_STORAGE) || '';
   }
 
   function setAdminKey(key) {
-    sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+    localStorage.setItem(ADMIN_KEY_STORAGE, key);
   }
 
   function clearAdminKey() {
-    sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+    localStorage.removeItem(ADMIN_KEY_STORAGE);
   }
 
   function adminFetch(path, options) {
