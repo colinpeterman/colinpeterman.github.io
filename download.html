@@ -144,6 +144,74 @@
       });
     }
 
+    // Relays a ReadableStream to the OS download manager through the
+    // zip-stream-sw.js Service Worker (registered scope: /__zipstream__/).
+    // Used on browsers without showSaveFilePicker (Safari, Firefox) so large
+    // zips still stream straight to disk instead of buffering in page memory.
+    async function streamToDiskViaServiceWorker(readableStream, filename) {
+      const reg = await navigator.serviceWorker.register('/zip-stream-sw.js', { scope: '/__zipstream__/' });
+      // navigator.serviceWorker.ready waits for a worker controlling the
+      // *current page* — but this SW is deliberately scoped to /__zipstream__/
+      // only (so it never touches normal site navigation), which never
+      // includes download.html itself. So it'd hang forever; wait on this
+      // specific registration instead.
+      const active = reg.active || await new Promise((resolve, reject) => {
+        const worker = reg.installing || reg.waiting;
+        if (!worker) { reject(new Error('Service worker registration failed')); return; }
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'activated') resolve(worker);
+          else if (worker.state === 'redundant') reject(new Error('Service worker install failed'));
+        });
+      });
+
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const channel = new MessageChannel();
+      const reader = readableStream.getReader();
+
+      return new Promise((resolve, reject) => {
+        let settled = false;
+        function finish(err) {
+          if (settled) return;
+          settled = true;
+          channel.port1.onmessage = null;
+          err ? reject(err) : resolve();
+        }
+
+        function pump() {
+          reader.read().then(({ value, done }) => {
+            if (done) {
+              channel.port1.postMessage({ type: 'close' });
+              finish();
+              return;
+            }
+            channel.port1.postMessage({ type: 'chunk', chunk: value.buffer }, [value.buffer]);
+          }).catch((err) => {
+            channel.port1.postMessage({ type: 'abort', message: String((err && err.message) || err) });
+            finish(err);
+          });
+        }
+
+        channel.port1.onmessage = (e) => {
+          const msg = e.data;
+          if (msg.type === 'ready') {
+            // The SW only intercepts fetches inside its scope, so navigating a
+            // hidden iframe there is what actually triggers a real, browser-
+            // native download — same as clicking a normal file link.
+            const downloadUrl = `/__zipstream__/${id}/${encodeURIComponent(filename)}`;
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = downloadUrl;
+            document.body.appendChild(iframe);
+            setTimeout(() => iframe.remove(), 10000);
+          } else if (msg.type === 'pull') {
+            pump();
+          }
+        };
+
+        active.postMessage({ type: 'start', id }, [channel.port2]);
+      });
+    }
+
     async function downloadAll() {
       const files = window.__deliveryFiles || [];
       if (!files.length) return;
@@ -151,6 +219,31 @@
       const btn = document.getElementById('download-all-btn');
       const originalText = btn.textContent;
       btn.disabled = true;
+
+      const clientName = (document.getElementById('client-heading').textContent || '').replace(/'s Photos$/, '');
+      const safeName = clientName.replace(/[^a-z0-9_\- ]/gi, '_') || 'delivery';
+      const filename = `${safeName}.zip`;
+
+      // Grab a disk-writable handle as the very first await, before any other
+      // async work — Chrome revokes the "user activation" showSaveFilePicker
+      // needs if too much happens between the click and the call.
+      let fileWritable = null;
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'Zip archive', accept: { 'application/zip': ['.zip'] } }],
+          });
+          fileWritable = await handle.createWritable();
+        } catch (err) {
+          if (err && err.name === 'AbortError') { // user cancelled the save dialog
+            btn.disabled = false;
+            btn.textContent = originalText;
+            return;
+          }
+          fileWritable = null; // fall through to the other strategies below
+        }
+      }
 
       // Prefetch several files at once (HTTP/2 multiplexes fine over one origin)
       // instead of waiting for each download to finish before starting the next.
@@ -184,31 +277,32 @@
           }
         }
 
-        btn.textContent = 'Building zip…';
         const zipResponse = downloadZip(entries());
-        const blob = await zipResponse.blob();
 
-        const clientName = (document.getElementById('client-heading').textContent || '').replace(/'s Photos$/, '');
-        const safeName = clientName.replace(/[^a-z0-9_\- ]/gi, '_') || 'delivery';
-
-        // Revoking the blob URL right after click() races Safari's disk write
-        // for large files — it can still be saving when the reference dies,
-        // which shows up as a "still being downloaded" / filename "Unknown"
-        // error. This page only exists to serve one download, so there's no
-        // real reason to revoke at all — the browser reclaims it on navigate
-        // /close. Only clean up the *previous* URL if the button is clicked
-        // again, so repeat clicks don't leak one blob per click forever.
-        if (activeZipUrl) URL.revokeObjectURL(activeZipUrl);
-        activeZipUrl = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = activeZipUrl;
-        a.download = `${safeName}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        // Stream straight to disk — never hold the whole archive in memory,
+        // which is what made large video-heavy deliveries stall or crash.
+        if (fileWritable) {
+          btn.textContent = 'Saving…';
+          await zipResponse.body.pipeTo(fileWritable);
+        } else if ('serviceWorker' in navigator) {
+          btn.textContent = 'Saving…';
+          await streamToDiskViaServiceWorker(zipResponse.body, filename);
+        } else {
+          // Last-resort fallback for browsers with neither API — buffers in
+          // memory like before, so it's still limited on very large deliveries.
+          const blob = await zipResponse.blob();
+          if (activeZipUrl) URL.revokeObjectURL(activeZipUrl);
+          activeZipUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = activeZipUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
       } catch (err) {
         controllers.forEach((c) => c.abort());
+        if (fileWritable) { try { await fileWritable.abort(); } catch (e) {} }
         alert(`Could not build the zip: ${err.message || err}. Try downloading files individually instead.`);
       } finally {
         btn.disabled = false;
