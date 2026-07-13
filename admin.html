@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=57" />
+  <link rel="stylesheet" href="style.css?v=62" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -38,47 +38,49 @@
 
   <!-- DELIVERY BUILDER (hidden until unlocked) -->
   <div id="admin-wrap" style="display:none;">
-    <div class="delivery-panel">
-      <h1 class="delivery-heading">New Delivery</h1>
+    <div class="admin-dashboard">
+      <div class="delivery-panel">
+        <h1 class="delivery-heading" style="font-size: clamp(28px, 5vw, 40px);">New Delivery</h1>
 
-      <div class="delivery-field">
-        <label for="client-name">Client name</label>
-        <input type="text" id="client-name" placeholder="e.g. Smith Wedding" />
-      </div>
-
-      <div class="delivery-field">
-        <label for="expiry-days">Link expires after (days)</label>
-        <input type="number" id="expiry-days" value="14" min="1" />
-      </div>
-
-      <div class="delivery-field">
-        <label for="file-input">Photos &amp; videos</label>
-        <input type="file" id="file-input" multiple webkitdirectory directory />
-        <p class="delivery-hint" id="file-count-hint">No files selected</p>
-      </div>
-
-      <button class="pw-submit" id="start-upload-btn" onclick="startDelivery()" disabled>Create &amp; Upload</button>
-
-      <div class="delivery-progress" id="progress-wrap" style="display:none;">
-        <div class="delivery-progress-bar"><div class="delivery-progress-fill" id="progress-fill"></div></div>
-        <p class="delivery-hint" id="progress-text"></p>
-      </div>
-
-      <div class="delivery-result" id="result-wrap" style="display:none;">
-        <p class="delivery-hint">Send this link to your client:</p>
-        <div class="delivery-link-row">
-          <input type="text" class="pw-input" id="result-link" readonly />
-          <button class="pw-submit" id="copy-link-btn" onclick="copyLink()">Copy</button>
+        <div class="delivery-field">
+          <label for="client-name">Client name</label>
+          <input type="text" id="client-name" placeholder="e.g. Smith Wedding" />
         </div>
+
+        <div class="delivery-field">
+          <label for="expiry-days">Link expires after (days)</label>
+          <input type="number" id="expiry-days" value="14" min="1" />
+        </div>
+
+        <div class="delivery-field">
+          <label for="file-input">Photos &amp; videos</label>
+          <input type="file" id="file-input" multiple webkitdirectory directory />
+          <p class="delivery-hint" id="file-count-hint">No files selected</p>
+        </div>
+
+        <button class="pw-submit" id="start-upload-btn" onclick="startDelivery()" disabled>Create &amp; Upload</button>
+
+        <div class="delivery-progress" id="progress-wrap" style="display:none;">
+          <div class="delivery-progress-bar"><div class="delivery-progress-fill" id="progress-fill"></div></div>
+          <p class="delivery-hint" id="progress-text"></p>
+        </div>
+
+        <div class="delivery-result" id="result-wrap" style="display:none;">
+          <p class="delivery-hint">Send this link to your client:</p>
+          <div class="delivery-link-row">
+            <input type="text" class="pw-input" id="result-link" readonly />
+            <button class="pw-submit" id="copy-link-btn" onclick="copyLink()">Copy</button>
+          </div>
+        </div>
+
+        <div class="delivery-error" id="delivery-error" role="alert" aria-live="polite"></div>
       </div>
 
-      <div class="delivery-error" id="delivery-error" role="alert" aria-live="polite"></div>
-    </div>
-
-    <div class="delivery-panel">
-      <h1 class="delivery-heading" style="font-size: clamp(28px, 5vw, 40px);">Active Deliveries</h1>
-      <p class="delivery-hint" id="deliveries-empty-hint">Loading&hellip;</p>
-      <div class="delivery-file-list" id="deliveries-list"></div>
+      <div class="delivery-panel">
+        <h1 class="delivery-heading" style="font-size: clamp(28px, 5vw, 40px);">Active Deliveries</h1>
+        <p class="delivery-hint" id="deliveries-empty-hint">Loading&hellip;</p>
+        <div class="delivery-file-list" id="deliveries-list"></div>
+      </div>
     </div>
 
     <div data-site-footer></div>
@@ -110,7 +112,7 @@
         document.getElementById('pw-gate').style.opacity = '0';
         setTimeout(() => {
           document.getElementById('pw-gate').style.display = 'none';
-          document.getElementById('admin-wrap').style.display = 'block';
+          document.getElementById('admin-wrap').style.display = 'flex';
         }, 300);
         loadDeliveries();
       } else {

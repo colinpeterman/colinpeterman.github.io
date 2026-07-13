@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=57" />
+  <link rel="stylesheet" href="style.css?v=62" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -28,13 +28,13 @@
   </div>
 
   <div id="delivery-wrap" style="display:none;">
-    <div class="delivery-panel">
+    <div class="delivery-panel delivery-panel-wide">
       <h1 class="delivery-heading" id="client-heading">Your Photos</h1>
       <p class="delivery-hint" id="expiry-hint"></p>
 
       <button class="pw-submit" id="download-all-btn" onclick="downloadAll()">Download All (.zip)</button>
 
-      <div class="delivery-file-list" id="file-list"></div>
+      <div class="delivery-preview-grid" id="preview-grid"></div>
     </div>
 
     <div data-site-footer></div>
@@ -55,15 +55,6 @@
       deliveryWrap.style.display = 'none';
       errorState.style.display = 'block';
       if (message) document.getElementById('error-message').textContent = message;
-    }
-
-    function formatBytes(bytes) {
-      if (!bytes) return '';
-      const units = ['B', 'KB', 'MB', 'GB'];
-      let i = 0;
-      let n = bytes;
-      while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-      return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
     }
 
     function formatExpiry(unixSeconds) {
@@ -88,36 +79,67 @@
       document.getElementById('client-heading').textContent = `${data.client_name}'s Photos`;
       document.getElementById('expiry-hint').textContent = `Available until ${formatExpiry(data.expires_at)}`;
 
-      const list = document.getElementById('file-list');
-      list.innerHTML = '';
-      data.files.forEach((file) => {
-        const row = document.createElement('div');
-        row.className = 'delivery-file-row';
-
-        const name = document.createElement('span');
-        name.className = 'delivery-file-name';
-        name.textContent = file.name;
-
-        const size = document.createElement('span');
-        size.className = 'delivery-file-size';
-        size.textContent = formatBytes(file.size);
-
-        const link = document.createElement('a');
-        link.className = 'delivery-file-download';
-        link.href = PhantomDelivery.WORKER_BASE_URL + file.url;
-        link.setAttribute('download', file.name);
-        link.textContent = 'Download';
-
-        row.appendChild(name);
-        row.appendChild(size);
-        row.appendChild(link);
-        list.appendChild(row);
-      });
-
+      window.__deliveryFiles = data.files;
       window.__zipUrl = PhantomDelivery.WORKER_BASE_URL + data.zip_url;
+      renderPreviewGrid();
 
       loadingState.style.display = 'none';
-      deliveryWrap.style.display = 'block';
+      deliveryWrap.style.display = 'flex';
+    }
+
+    const VIDEO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 9.5l5-3v11l-5-3z"/></svg>`;
+
+    let gridExpanded = false;
+
+    function renderPreviewGrid() {
+      const files = window.__deliveryFiles || [];
+      const grid = document.getElementById('preview-grid');
+      grid.innerHTML = '';
+
+      const visibleFiles = gridExpanded ? files : files.slice(0, 4);
+
+      visibleFiles.forEach((file, i) => {
+        const tile = document.createElement('a');
+        tile.className = 'preview-tile';
+        tile.title = file.name;
+
+        const isLastCapped = !gridExpanded && i === 3 && files.length > 4;
+
+        if (isLastCapped) {
+          tile.href = '#';
+          tile.onclick = (e) => {
+            e.preventDefault();
+            gridExpanded = true;
+            renderPreviewGrid();
+          };
+        } else {
+          tile.href = PhantomDelivery.WORKER_BASE_URL + file.url;
+          tile.setAttribute('download', file.name);
+        }
+
+        const isImage = file.type && file.type.startsWith('image/');
+        if (isImage) {
+          const img = document.createElement('img');
+          img.src = PhantomDelivery.WORKER_BASE_URL + file.url + '?preview=1';
+          img.alt = file.name;
+          img.loading = 'lazy';
+          tile.appendChild(img);
+        } else {
+          const icon = document.createElement('div');
+          icon.className = 'preview-tile-icon';
+          icon.innerHTML = VIDEO_ICON_SVG;
+          tile.appendChild(icon);
+        }
+
+        if (isLastCapped) {
+          const overlay = document.createElement('div');
+          overlay.className = 'preview-tile-overlay';
+          overlay.textContent = `+${files.length - 4} more`;
+          tile.appendChild(overlay);
+        }
+
+        grid.appendChild(tile);
+      });
     }
 
     function downloadAll() {

@@ -494,11 +494,53 @@ nav {
 }
 .delivery-bg > *:not(.pw-gate) { position: relative; z-index: 1; }
 
+/* Pin the footer to the bottom of the viewport even when content is short —
+   on plain dark-bg pages a short-content gap was invisible (same color as footer),
+   but the background photo here makes any gap obvious. */
+#admin-wrap, #delivery-wrap {
+  flex-direction: column;
+  min-height: calc(100vh - var(--nav-h));
+  padding-top: calc(var(--nav-h) + 60px);
+  padding-bottom: 40px;
+}
+#admin-wrap .gallery-footer, #delivery-wrap .gallery-footer {
+  margin-top: auto;
+}
+
+/* Standalone panels (download.html loading/error states) aren't inside
+   #admin-wrap/#delivery-wrap, so they need their own nav clearance. */
+#loading-state, #error-state {
+  margin-top: calc(var(--nav-h) + 60px);
+}
+
 .delivery-panel {
   max-width: 480px;
-  margin: calc(var(--nav-h) + 60px) auto 80px;
-  padding: 0 24px;
+  margin: 0 auto 32px;
+  padding: 36px;
   color: var(--text-light);
+  background: rgba(13,13,13,0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Admin dashboard: form + active-deliveries list side by side on wide screens */
+.admin-dashboard {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.admin-dashboard .delivery-panel {
+  max-width: none;
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .admin-dashboard { grid-template-columns: 1fr; }
 }
 
 .delivery-heading {
@@ -606,6 +648,55 @@ nav {
   text-decoration: underline;
   text-underline-offset: 3px;
   flex-shrink: 0;
+}
+
+.delivery-panel-wide { max-width: 640px; }
+
+.delivery-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 28px;
+}
+@media (max-width: 520px) {
+  .delivery-preview-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.preview-tile {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.preview-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.preview-tile-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.55);
+}
+.preview-tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
 }
 
 /* ========================================
