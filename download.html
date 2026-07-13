@@ -185,6 +185,7 @@
     // Used on browsers without showSaveFilePicker (Safari, Firefox) so large
     // zips still stream straight to disk instead of buffering in page memory.
     async function streamToDiskViaServiceWorker(readableStream, filename) {
+      console.log('[SW-SETUP] Registering service worker with scope: /__zipstream__/');
       const reg = await navigator.serviceWorker.register('/zip-stream-sw.js', { scope: '/__zipstream__/' });
       // navigator.serviceWorker.ready waits for a worker controlling the
       // *current page* — but this SW is deliberately scoped to /__zipstream__/
@@ -195,12 +196,14 @@
         const worker = reg.installing || reg.waiting;
         if (!worker) { reject(new Error('Service worker registration failed')); return; }
         worker.addEventListener('statechange', () => {
+          console.log(`[SW-SETUP] Worker state changed: ${worker.state}`);
           if (worker.state === 'activated') resolve(worker);
           else if (worker.state === 'redundant') reject(new Error('Service worker install failed'));
         });
       });
 
       const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      console.log(`[SW-SETUP] Active worker confirmed. Generated stream ID: ${id}`);
       const channel = new MessageChannel();
       const reader = readableStream.getReader();
 
@@ -210,18 +213,26 @@
           if (settled) return;
           settled = true;
           channel.port1.onmessage = null;
+          console.log(`[SW-SETUP] Stream finished. Error status: ${err ? err.message || err : 'none'}`);
           err ? reject(err) : resolve();
         }
 
+        let chunkCounter = 0;
         function pump() {
+          chunkCounter++;
+          const currentChunk = chunkCounter;
+          console.log(`[STREAM] Pump requested. Reading chunk #${currentChunk}...`);
           reader.read().then(({ value, done }) => {
             if (done) {
+              console.log('[STREAM] Source reader returned EOF (done). Sending close signal to SW.');
               channel.port1.postMessage({ type: 'close' });
               finish();
               return;
             }
+            console.log(`[STREAM] Chunk #${currentChunk} read successfully. Size: ${value.byteLength} bytes. Sending to SW...`);
             channel.port1.postMessage({ type: 'chunk', chunk: value.buffer }, [value.buffer]);
           }).catch((err) => {
+            console.error(`[STREAM] Source reader crashed on chunk #${currentChunk}:`, err);
             channel.port1.postMessage({ type: 'abort', message: String((err && err.message) || err) });
             finish(err);
           });
@@ -229,21 +240,24 @@
 
         channel.port1.onmessage = (e) => {
           const msg = e.data;
+          console.log(`[PORT-MESSAGE] Received command from Service Worker: "${msg.type}"`);
           if (msg.type === 'ready') {
-            // The SW only intercepts fetches inside its scope, so navigating a
-            // hidden iframe there is what actually triggers a real, browser-
-            // native download — same as clicking a normal file link.
             const downloadUrl = `/__zipstream__/${id}/${encodeURIComponent(filename)}`;
+            console.log(`[PORT-MESSAGE] SW ready. Creating hidden iframe pointing to: ${downloadUrl}`);
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.src = downloadUrl;
             document.body.appendChild(iframe);
-            setTimeout(() => iframe.remove(), 10000);
+            setTimeout(() => {
+              console.log('[STREAM] Removing download iframe from DOM');
+              iframe.remove();
+            }, 10000);
           } else if (msg.type === 'pull') {
             pump();
           }
         };
 
+        console.log('[SW-SETUP] Posting "start" handshake message to active Service Worker.');
         active.postMessage({ type: 'start', id }, [channel.port2]);
       });
     }
@@ -258,6 +272,7 @@
       const files = window.__deliveryFiles || [];
       if (!files.length) return;
 
+      console.log(`[DOWNLOAD] Initiating ZIP download for ${files.length} files. Total estimated metadata count: ${files.length}`);
       const btn = document.getElementById('download-all-btn');
       const originalText = btn.textContent;
       btn.disabled = true;
@@ -269,12 +284,6 @@
       let bytesDone = 0;
       let currentFileIndex = 0;
 
-      // A large video reads in thousands of small chunks — calling this on
-      // every single one forces a style/layout recalc thousands of times,
-      // janking the main thread badly enough to stall the postMessage
-      // round-trips driving the Service Worker relay. Throttle the DOM
-      // writes; byte counting itself (the caller's bytesDone += ...) stays
-      // untouched and unthrottled.
       let lastProgressPaint = 0;
       function updateProgress(force) {
         const now = performance.now();
@@ -289,65 +298,56 @@
       const safeName = clientName.replace(/[^a-z0-9_\- ]/gi, '_') || 'delivery';
       const filename = `${safeName}.zip`;
 
-      // Prefer the Service Worker relay over showSaveFilePicker + pipeTo()
-      // even in Chrome/Edge: pipeTo() writes through a sandboxed .crswap temp
-      // file, and large video-heavy deliveries reproducibly stalled partway
-      // through (fixed-size batching alone wasn't enough). The Service
-      // Worker relay hands bytes to the browser's native download manager
-      // instead — confirmed reliable at any size — so it's worth giving up
-      // Chrome's native "choose where to save" dialog for that reliability.
       const useServiceWorker = 'serviceWorker' in navigator;
+      console.log(`[DOWNLOAD] Environment capabilities: useServiceWorker=${useServiceWorker}`);
 
-      // Only touch showSaveFilePicker as a fallback when there's no Service
-      // Worker support at all. Grab the handle as the very first await,
-      // before any other async work — Chrome revokes the "user activation"
-      // showSaveFilePicker needs if too much happens between click and call.
       let fileWritable = null;
       if (!useServiceWorker && 'showSaveFilePicker' in window) {
+        console.log('[DOWNLOAD] Service Worker not supported. Attempting native Save File Picker API fallback...');
         try {
           const handle = await window.showSaveFilePicker({
             suggestedName: filename,
             types: [{ description: 'Zip archive', accept: { 'application/zip': ['.zip'] } }],
           });
           fileWritable = await handle.createWritable();
+          console.log('[DOWNLOAD] Save File Picker handle writable successfully established.');
         } catch (err) {
-          if (err && err.name === 'AbortError') { // user cancelled the save dialog
+          if (err && err.name === 'AbortError') {
+            console.warn('[DOWNLOAD] User cancelled native save file dialog.');
             btn.disabled = false;
             btn.textContent = originalText;
             return;
           }
-          fileWritable = null; // fall through to the blob strategy below
+          console.error('[DOWNLOAD] Save File Picker failed or was rejected:', err);
+          fileWritable = null;
         }
       }
 
-      // Prefetch several files at once (HTTP/2 multiplexes fine over one origin)
-      // instead of waiting for each download to finish before starting the next.
-      // The zip still gets built in file order, but the network round-trips
-      // overlap instead of stacking up serially.
       const CONCURRENCY = 4;
       const controllers = files.map(() => new AbortController());
       const fetchPromises = new Array(files.length);
+      
       function ensureStarted(i) {
         if (i < files.length && !fetchPromises[i]) {
-          // bulk=1 tells the Worker not to count this toward the individual
-          // per-file download counter — the whole zip click is counted once,
-          // separately, via register-zip-download below.
-          fetchPromises[i] = fetch(`${PhantomDelivery.WORKER_BASE_URL}${files[i].url}?bulk=1`, { signal: controllers[i].signal });
+          const targetUrl = `${PhantomDelivery.WORKER_BASE_URL}${files[i].url}?bulk=1`;
+          console.log(`[QUEUE] Starting prefetch stream for File #${i + 1} (${files[i].name}) at URL: ${targetUrl}`);
+          fetchPromises[i] = fetch(targetUrl, { signal: controllers[i].signal });
         }
       }
 
-      PhantomDelivery.publicFetch(`/api/download/${encodeURIComponent(token)}/register-zip-download`, { method: 'POST' }).catch(() => {});
+      console.log('[DOWNLOAD] Registering ZIP metrics hit on server.');
+      PhantomDelivery.publicFetch(`/api/download/${encodeURIComponent(token)}/register-zip-download`, { method: 'POST' })
+        .then(() => console.log('[DOWNLOAD] Server metrics hit registered successfully.'))
+        .catch((err) => console.error('[DOWNLOAD] Server metrics failure:', err));
 
       progressWrap.style.display = 'block';
       progressFill.style.width = '0%';
       updateProgress(true);
 
       try {
-        // Built in the browser, not on the server — zipping multi-GB deliveries
-        // needs real CPU time that a Workers Free plan request can't spend.
-        // The visitor's own machine does the work instead, using the same
-        // per-file download endpoint that already streams reliably at any size.
+        console.log('[DOWNLOAD] Importing client-zip module...');
         const { downloadZip } = await import('./client-zip.js');
+        console.log('[DOWNLOAD] client-zip module loaded successfully.');
 
         for (let i = 0; i < Math.min(CONCURRENCY, files.length); i++) ensureStarted(i);
 
@@ -355,12 +355,14 @@
           for (let i = 0; i < files.length; i++) {
             ensureStarted(i + CONCURRENCY);
             currentFileIndex = i;
+            console.log(`[ZIP-COMPILER] Processing File #${i + 1} (${files[i].name}) in compilation loop.`);
             const res = await fetchPromises[i];
-            if (!res.ok) throw new Error(`Failed to fetch ${files[i].name}`);
+            if (!res.ok) {
+              console.error(`[ZIP-COMPILER] HTTP error fetching File #${i + 1} (${files[i].name}): Status ${res.status}`);
+              throw new Error(`Failed to fetch ${files[i].name}`);
+            }
 
-            // Tap bytes as they actually flow into the zip (not just when the
-            // fetch starts) — this is the one point that stays accurate no
-            // matter which of the three save strategies below ends up used.
+            console.log(`[ZIP-COMPILER] Connection open for File #${i + 1} (${files[i].name}). Injecting tracking stream...`);
             const counted = res.body.pipeThrough(new TransformStream({
               transform(chunk, controller) {
                 bytesDone += chunk.byteLength;
@@ -373,19 +375,20 @@
           }
         }
 
+        console.log('[ZIP-COMPILER] Initializing ZIP compiler output stream wrapper...');
         const zipResponse = downloadZip(entries());
+        console.log('[ZIP-COMPILER] ZIP stream compiler initialized successfully.');
 
         btn.textContent = 'Downloading…';
 
-        // Stream straight to disk — never hold the whole archive in memory,
-        // which is what made large video-heavy deliveries stall or crash.
         if (useServiceWorker) {
+          console.log('[DOWNLOAD] Starting disk write sequence via Service Worker pipeline.');
           await streamToDiskViaServiceWorker(zipResponse.body, filename);
         } else if (fileWritable) {
+          console.log('[DOWNLOAD] Starting disk write sequence via FileSystemWritable handle batch loop.');
           await zipResponse.body.pipeThrough(batchForDiskWrites(4 * 1024 * 1024)).pipeTo(fileWritable);
         } else {
-          // Last-resort fallback for browsers with neither API — buffers in
-          // memory like before, so it's still limited on very large deliveries.
+          console.warn('[DOWNLOAD] No disk writing API available. Falling back to native in-memory blob assembly.');
           const blob = await zipResponse.blob();
           if (activeZipUrl) URL.revokeObjectURL(activeZipUrl);
           activeZipUrl = URL.createObjectURL(blob);
@@ -397,8 +400,10 @@
           a.remove();
         }
 
-        updateProgress(true); // throttling can otherwise leave the bar short of 100%
+        console.log('[DOWNLOAD] Disk write loop finished successfully.');
+        updateProgress(true);
       } catch (err) {
+        console.error('[DOWNLOAD] Pipeline operation crashed with error:', err);
         controllers.forEach((c) => c.abort());
         if (fileWritable) { try { await fileWritable.abort(); } catch (e) {} }
         alert(`Could not build the zip: ${err.message || err}. Try downloading files individually instead.`);
@@ -406,6 +411,7 @@
         btn.disabled = false;
         btn.textContent = originalText;
         progressWrap.style.display = 'none';
+        console.log('[DOWNLOAD] Cleanup complete. Controls restored.');
       }
     }
 
