@@ -480,7 +480,19 @@ nav {
    CLIENT DELIVERY (admin.html / download.html)
    ======================================== */
 
-.admin-gate { background: var(--bg-dark); }
+.delivery-bg {
+  background: #0d0d0d url('images/licensing_lock/desktop.webp') center center / cover no-repeat fixed;
+  position: relative;
+}
+.delivery-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.62);
+  z-index: 0;
+  pointer-events: none;
+}
+.delivery-bg > *:not(.pw-gate) { position: relative; z-index: 1; }
 
 .delivery-panel {
   max-width: 480px;

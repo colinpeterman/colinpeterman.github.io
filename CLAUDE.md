@@ -55,5 +55,11 @@ git add . && git commit -m "add photos" && git push
 - `admin.html`'s "password" gate is not a client-side hash like licensing.html's — the key is sent
   as a Bearer token to the Worker on every admin request and checked server-side, since this gate
   protects destructive actions (uploads), not just view access.
+- `admin.html` has an "Active Deliveries" list below the New Delivery form (fetched from
+  `GET /api/admin/deliveries`) showing non-expired, non-purged deliveries with Copy Link and Revoke
+  actions. Revoke deletes a delivery's R2 files and expires its link immediately, ahead of schedule.
+- Both `admin.html` and `download.html` use the `.delivery-bg` class (body-level background photo +
+  dark overlay, reusing `images/licensing_lock/desktop.webp`) for visual consistency with the
+  licensing page's gate. See the "CLIENT DELIVERY" section in `style.css`.
 - See `../phantom-delivery-worker/README.md` (or its CLAUDE.md) for Worker setup/deploy details.
 

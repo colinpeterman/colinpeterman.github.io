@@ -11,9 +11,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=56" />
+  <link rel="stylesheet" href="style.css?v=57" />
 </head>
-<body class="gallery-page">
+<body class="gallery-page delivery-bg">
 
   <div data-site-nav></div>
 
@@ -75,6 +75,12 @@
       <div class="delivery-error" id="delivery-error" role="alert" aria-live="polite"></div>
     </div>
 
+    <div class="delivery-panel">
+      <h1 class="delivery-heading" style="font-size: clamp(28px, 5vw, 40px);">Active Deliveries</h1>
+      <p class="delivery-hint" id="deliveries-empty-hint">Loading&hellip;</p>
+      <div class="delivery-file-list" id="deliveries-list"></div>
+    </div>
+
     <div data-site-footer></div>
   </div>
 
@@ -106,6 +112,7 @@
           document.getElementById('pw-gate').style.display = 'none';
           document.getElementById('admin-wrap').style.display = 'block';
         }, 300);
+        loadDeliveries();
       } else {
         PhantomDelivery.clearAdminKey();
         errEl.textContent = 'Incorrect key or server unreachable. Please try again.';
@@ -209,6 +216,7 @@
 
         document.getElementById('result-link').value = createData.download_link;
         document.getElementById('result-wrap').style.display = 'block';
+        loadDeliveries();
       } catch (err) {
         errEl.textContent = err.message || String(err);
         startBtn.disabled = false;
@@ -223,6 +231,82 @@
       const original = btn.textContent;
       btn.textContent = 'Copied!';
       setTimeout(() => { btn.textContent = original; }, 1500);
+    }
+
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).catch(() => {});
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    }
+
+    function formatDate(unixSeconds) {
+      return new Date(unixSeconds * 1000).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    async function loadDeliveries() {
+      const listEl = document.getElementById('deliveries-list');
+      const emptyHint = document.getElementById('deliveries-empty-hint');
+      const res = await PhantomDelivery.adminFetch('/api/admin/deliveries').catch(() => null);
+      if (!res || !res.ok) {
+        emptyHint.textContent = 'Could not load deliveries.';
+        listEl.innerHTML = '';
+        return;
+      }
+      const data = await res.json();
+      listEl.innerHTML = '';
+
+      if (!data.deliveries.length) {
+        emptyHint.textContent = 'No active deliveries.';
+        return;
+      }
+      emptyHint.textContent = '';
+
+      data.deliveries.forEach((d) => {
+        const row = document.createElement('div');
+        row.className = 'delivery-file-row';
+
+        const info = document.createElement('span');
+        info.className = 'delivery-file-name';
+        info.style.whiteSpace = 'normal';
+        info.textContent = `${d.client_name} — ${d.file_count} file${d.file_count === 1 ? '' : 's'}, expires ${formatDate(d.expires_at)}, ${d.download_count} download${d.download_count === 1 ? '' : 's'}`;
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'delivery-file-download';
+        copyBtn.style.background = 'none';
+        copyBtn.style.border = 'none';
+        copyBtn.style.cursor = 'pointer';
+        copyBtn.style.font = 'inherit';
+        copyBtn.textContent = 'Copy Link';
+        copyBtn.onclick = () => copyText(d.download_link, copyBtn);
+
+        const revokeBtn = document.createElement('button');
+        revokeBtn.className = 'delivery-file-download';
+        revokeBtn.style.background = 'none';
+        revokeBtn.style.border = 'none';
+        revokeBtn.style.cursor = 'pointer';
+        revokeBtn.style.font = 'inherit';
+        revokeBtn.style.color = '#ff8080';
+        revokeBtn.style.marginLeft = '16px';
+        revokeBtn.textContent = 'Revoke';
+        revokeBtn.onclick = async () => {
+          if (!confirm(`Revoke the link for "${d.client_name}"? This deletes their files immediately.`)) return;
+          revokeBtn.disabled = true;
+          revokeBtn.textContent = 'Revoking…';
+          const revokeRes = await PhantomDelivery.adminFetch(`/api/admin/deliveries/${d.token}/revoke`, { method: 'POST' }).catch(() => null);
+          if (revokeRes && revokeRes.ok) {
+            loadDeliveries();
+          } else {
+            revokeBtn.disabled = false;
+            revokeBtn.textContent = 'Revoke';
+          }
+        };
+
+        row.appendChild(info);
+        row.appendChild(copyBtn);
+        row.appendChild(revokeBtn);
+        listEl.appendChild(row);
+      });
     }
   </script>
 </body>
