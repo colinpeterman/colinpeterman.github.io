@@ -43,11 +43,16 @@ git add . && git commit -m "add photos" && git push
 
 - Self-hosted WeTransfer replacement: `admin.html` (owner-only, key-gated) uploads a client's
   photos/videos to Cloudflare R2 via presigned URLs and generates a unique `download.html?t=<token>`
-  link; `download.html` lets the client download files individually or as a streamed "Download All (.zip)".
+  link; `download.html` lets the client download files individually or as a "Download All (.zip)".
+- The zip is built client-side in the browser (`client-zip.js`, vendored at repo root — see its
+  header comment for source/license), not on the Worker: the Worker is on the Cloudflare Free plan,
+  which caps CPU time at 10ms/request, far too little to checksum a multi-GB zip server-side.
+  `download.html`'s `downloadAll()` fetches each file (same endpoint individual downloads use, which
+  has zero server-side compute) and assembles the zip in the visitor's own browser.
 - Backend lives in a **separate** sibling project, `../phantom-delivery-worker/` — its own git repo,
   deployed independently via `wrangler deploy` (not part of this GitHub Pages repo/build).
   Stack: Cloudflare Workers + R2 (storage) + D1 (delivery metadata: token, expiry, file list).
-  Presigned uploads use `aws4fetch`; zip streaming uses `client-zip`.
+  Presigned uploads use `aws4fetch`.
 - Both R2 objects and their D1 records expire on a time basis — a daily Worker cron sweep deletes
   expired objects from R2 so storage cost doesn't accumulate (not just link deactivation).
 - `delivery.js` holds the shared `WORKER_BASE_URL` + fetch helpers for both pages — update the

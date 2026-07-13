@@ -80,7 +80,6 @@
       document.getElementById('expiry-hint').textContent = `Available until ${formatExpiry(data.expires_at)}`;
 
       window.__deliveryFiles = data.files;
-      window.__zipUrl = PhantomDelivery.WORKER_BASE_URL + data.zip_url;
       renderPreviewGrid();
 
       loadingState.style.display = 'none';
@@ -144,14 +143,52 @@
       });
     }
 
-    function downloadAll() {
-      if (!window.__zipUrl) return;
-      const a = document.createElement('a');
-      a.href = window.__zipUrl;
-      a.setAttribute('download', '');
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+    async function downloadAll() {
+      const files = window.__deliveryFiles || [];
+      if (!files.length) return;
+
+      const btn = document.getElementById('download-all-btn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+
+      try {
+        // Built in the browser, not on the server — zipping multi-GB deliveries
+        // needs real CPU time that a Workers Free plan request can't spend.
+        // The visitor's own machine does the work instead, using the same
+        // per-file download endpoint that already streams reliably at any size.
+        const { downloadZip } = await import('./client-zip.js');
+
+        async function* entries() {
+          for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            btn.textContent = `Downloading ${i + 1} / ${files.length}…`;
+            const res = await fetch(PhantomDelivery.WORKER_BASE_URL + f.url);
+            if (!res.ok) throw new Error(`Failed to fetch ${f.name}`);
+            yield { name: f.name, input: res.body, size: f.size };
+          }
+        }
+
+        btn.textContent = 'Building zip…';
+        const zipResponse = downloadZip(entries());
+        const blob = await zipResponse.blob();
+
+        const clientName = (document.getElementById('client-heading').textContent || '').replace(/'s Photos$/, '');
+        const safeName = clientName.replace(/[^a-z0-9_\- ]/gi, '_') || 'delivery';
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeName}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert(`Could not build the zip: ${err.message || err}. Try downloading files individually instead.`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     }
 
     init();
