@@ -481,12 +481,15 @@ nav {
    ======================================== */
 
 .delivery-bg {
-  background: #0d0d0d url('images/licensing_lock/desktop.webp') center center / cover no-repeat fixed;
+  /* No `fixed` attachment — iOS Safari detaches fixed backgrounds from the
+     page during toolbar show/hide animations and overscroll, leaving a
+     visible gap/color-mismatch strip at the top of the screen. */
+  background: #0d0d0d url('images/licensing_lock/desktop.webp') center center / cover no-repeat;
   position: relative;
 }
 .delivery-bg::before {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.62);
   z-index: 0;

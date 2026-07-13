@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=65" />
+  <link rel="stylesheet" href="style.css?v=66" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -279,11 +279,21 @@
       const safeName = clientName.replace(/[^a-z0-9_\- ]/gi, '_') || 'delivery';
       const filename = `${safeName}.zip`;
 
-      // Grab a disk-writable handle as the very first await, before any other
-      // async work — Chrome revokes the "user activation" showSaveFilePicker
-      // needs if too much happens between the click and the call.
+      // Prefer the Service Worker relay over showSaveFilePicker + pipeTo()
+      // even in Chrome/Edge: pipeTo() writes through a sandboxed .crswap temp
+      // file, and large video-heavy deliveries reproducibly stalled partway
+      // through (fixed-size batching alone wasn't enough). The Service
+      // Worker relay hands bytes to the browser's native download manager
+      // instead — confirmed reliable at any size — so it's worth giving up
+      // Chrome's native "choose where to save" dialog for that reliability.
+      const useServiceWorker = 'serviceWorker' in navigator;
+
+      // Only touch showSaveFilePicker as a fallback when there's no Service
+      // Worker support at all. Grab the handle as the very first await,
+      // before any other async work — Chrome revokes the "user activation"
+      // showSaveFilePicker needs if too much happens between click and call.
       let fileWritable = null;
-      if ('showSaveFilePicker' in window) {
+      if (!useServiceWorker && 'showSaveFilePicker' in window) {
         try {
           const handle = await window.showSaveFilePicker({
             suggestedName: filename,
@@ -296,7 +306,7 @@
             btn.textContent = originalText;
             return;
           }
-          fileWritable = null; // fall through to the other strategies below
+          fileWritable = null; // fall through to the blob strategy below
         }
       }
 
@@ -359,10 +369,10 @@
 
         // Stream straight to disk — never hold the whole archive in memory,
         // which is what made large video-heavy deliveries stall or crash.
-        if (fileWritable) {
-          await zipResponse.body.pipeThrough(batchForDiskWrites(4 * 1024 * 1024)).pipeTo(fileWritable);
-        } else if ('serviceWorker' in navigator) {
+        if (useServiceWorker) {
           await streamToDiskViaServiceWorker(zipResponse.body, filename);
+        } else if (fileWritable) {
+          await zipResponse.body.pipeThrough(batchForDiskWrites(4 * 1024 * 1024)).pipeTo(fileWritable);
         } else {
           // Last-resort fallback for browsers with neither API — buffers in
           // memory like before, so it's still limited on very large deliveries.
