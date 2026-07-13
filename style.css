@@ -502,7 +502,6 @@ nav {
   box-sizing: border-box;
   min-height: 100vh;
   padding-top: calc(var(--nav-h) + 60px);
-  padding-bottom: 40px;
 }
 #admin-wrap .gallery-footer, #delivery-wrap .gallery-footer {
   margin-top: auto;
