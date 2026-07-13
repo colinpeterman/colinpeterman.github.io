@@ -789,6 +789,16 @@ nav {
   .delivery-card-btn { flex: none; }
   .delivery-link-row { flex-direction: column; align-items: stretch; }
   .delivery-link-row .pw-submit { width: 100%; padding: 0; }
+
+  /* The 60px top buffer and full-viewport min-height read fine on desktop
+     but leave an oversized gap above the first panel on phones, and an
+     equally oversized dead zone above the footer when content is short. */
+  #admin-wrap, #delivery-wrap {
+    min-height: auto;
+    padding-top: calc(var(--nav-h) + 24px);
+    padding-bottom: 24px;
+  }
+  #loading-state, #error-state { margin-top: calc(var(--nav-h) + 24px); }
 }
 
 /* ========================================

@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=66" />
+  <link rel="stylesheet" href="style.css?v=67" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -269,7 +269,17 @@
       let bytesDone = 0;
       let currentFileIndex = 0;
 
-      function updateProgress() {
+      // A large video reads in thousands of small chunks — calling this on
+      // every single one forces a style/layout recalc thousands of times,
+      // janking the main thread badly enough to stall the postMessage
+      // round-trips driving the Service Worker relay. Throttle the DOM
+      // writes; byte counting itself (the caller's bytesDone += ...) stays
+      // untouched and unthrottled.
+      let lastProgressPaint = 0;
+      function updateProgress(force) {
+        const now = performance.now();
+        if (!force && now - lastProgressPaint < 100) return;
+        lastProgressPaint = now;
         const pct = totalBytes > 0 ? Math.min(100, Math.round((bytesDone / totalBytes) * 100)) : 0;
         progressFill.style.width = `${pct}%`;
         progressText.textContent = `File ${currentFileIndex + 1} of ${files.length} — ${formatBytes(bytesDone)} / ${formatBytes(totalBytes)} (${pct}%)`;
@@ -330,7 +340,7 @@
 
       progressWrap.style.display = 'block';
       progressFill.style.width = '0%';
-      updateProgress();
+      updateProgress(true);
 
       try {
         // Built in the browser, not on the server — zipping multi-GB deliveries
@@ -386,6 +396,8 @@
           a.click();
           a.remove();
         }
+
+        updateProgress(true); // throttling can otherwise leave the bar short of 100%
       } catch (err) {
         controllers.forEach((c) => c.abort());
         if (fileWritable) { try { await fileWritable.abort(); } catch (e) {} }
