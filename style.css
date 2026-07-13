@@ -615,39 +615,113 @@ nav {
   margin-top: 16px;
 }
 
-.delivery-file-list { margin-top: 28px; }
-.delivery-file-row {
+/* Active Deliveries cards (admin.html) */
+.delivery-file-list { margin-top: 28px; display: flex; flex-direction: column; gap: 14px; }
+
+.delivery-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.delivery-card-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.delivery-file-name {
-  flex: 1;
+.delivery-card-name {
   font-family: var(--font-body);
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 16px;
   color: var(--text-light);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-word;
 }
-.delivery-file-size {
-  font-family: var(--font-cond);
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
+.delivery-card-edit-toggle {
   flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  padding: 4px 0;
 }
-.delivery-file-download {
+.delivery-card-edit-toggle:hover { color: var(--text-light); }
+
+.delivery-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 10px;
+}
+.delivery-stat {
+  font-family: var(--font-cond);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: rgba(255,255,255,0.55);
+}
+.delivery-stat strong { color: var(--text-light); font-weight: 700; }
+
+.delivery-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.delivery-card-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: none;
+  color: var(--text-light);
   font-family: var(--font-cond);
   font-weight: 700;
   font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.delivery-card-btn:hover { background: rgba(255,255,255,0.08); }
+.delivery-card-btn:disabled { opacity: 0.5; cursor: default; }
+.delivery-card-btn.danger { color: #ff8080; border-color: rgba(255,128,128,0.35); }
+.delivery-card-btn.danger:hover { background: rgba(255,128,128,0.1); }
+.delivery-card-btn.primary { background: var(--text-light); color: #0d0d0d; border-color: var(--text-light); }
+.delivery-card-btn.primary:hover { opacity: 0.9; }
+
+.delivery-edit-form .delivery-field { margin-bottom: 12px; }
+.delivery-edit-form .delivery-field label {
+  display: block;
+  font-family: var(--font-cond);
+  font-weight: 600;
+  font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-light);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  flex-shrink: 0;
+  margin-bottom: 6px;
+  color: rgba(255,255,255,0.6);
+}
+.delivery-edit-form input[type="text"],
+.delivery-edit-form input[type="date"] {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: #0d0d0d;
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+.delivery-edit-error {
+  color: #ff8080;
+  font-size: 12px;
+  margin-top: 8px;
 }
 
 .delivery-panel-wide { max-width: 640px; }
@@ -701,6 +775,17 @@ nav {
   font-size: 14px;
   letter-spacing: 0.04em;
   cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .delivery-panel { padding: 24px 20px; }
+  .delivery-heading { font-size: clamp(26px, 8vw, 36px); }
+  .admin-dashboard { padding: 0 16px; }
+  .delivery-card { padding: 16px; }
+  .delivery-card-actions { flex-direction: column; }
+  .delivery-card-btn { flex: none; }
+  .delivery-link-row { flex-direction: column; align-items: stretch; }
+  .delivery-link-row .pw-submit { width: 100%; padding: 0; }
 }
 
 /* ========================================

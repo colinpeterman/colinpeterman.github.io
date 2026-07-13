@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=64" />
+  <link rel="stylesheet" href="style.css?v=65" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -279,6 +279,14 @@
       return new Date(unixSeconds * 1000).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
+    function formatDateInput(unixSeconds) {
+      const d = new Date(unixSeconds * 1000);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
     async function loadDeliveries() {
       const listEl = document.getElementById('deliveries-list');
       const emptyHint = document.getElementById('deliveries-empty-hint');
@@ -298,50 +306,165 @@
       emptyHint.textContent = '';
 
       data.deliveries.forEach((d) => {
-        const row = document.createElement('div');
-        row.className = 'delivery-file-row';
-
-        const info = document.createElement('span');
-        info.className = 'delivery-file-name';
-        info.style.whiteSpace = 'normal';
-        info.textContent = `${d.client_name} — ${d.file_count} file${d.file_count === 1 ? '' : 's'}, expires ${formatDate(d.expires_at)}, ${d.download_count} download${d.download_count === 1 ? '' : 's'}`;
-
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'delivery-file-download';
-        copyBtn.style.background = 'none';
-        copyBtn.style.border = 'none';
-        copyBtn.style.cursor = 'pointer';
-        copyBtn.style.font = 'inherit';
-        copyBtn.textContent = 'Copy Link';
-        copyBtn.onclick = () => copyText(d.download_link, copyBtn);
-
-        const revokeBtn = document.createElement('button');
-        revokeBtn.className = 'delivery-file-download';
-        revokeBtn.style.background = 'none';
-        revokeBtn.style.border = 'none';
-        revokeBtn.style.cursor = 'pointer';
-        revokeBtn.style.font = 'inherit';
-        revokeBtn.style.color = '#ff8080';
-        revokeBtn.style.marginLeft = '16px';
-        revokeBtn.textContent = 'Revoke';
-        revokeBtn.onclick = async () => {
-          if (!confirm(`Revoke the link for "${d.client_name}"? This deletes their files immediately.`)) return;
-          revokeBtn.disabled = true;
-          revokeBtn.textContent = 'Revoking…';
-          const revokeRes = await PhantomDelivery.adminFetch(`/api/admin/deliveries/${d.token}/revoke`, { method: 'POST' }).catch(() => null);
-          if (revokeRes && revokeRes.ok) {
-            loadDeliveries();
-          } else {
-            revokeBtn.disabled = false;
-            revokeBtn.textContent = 'Revoke';
-          }
-        };
-
-        row.appendChild(info);
-        row.appendChild(copyBtn);
-        row.appendChild(revokeBtn);
-        listEl.appendChild(row);
+        const card = document.createElement('div');
+        card.className = 'delivery-card';
+        renderCardView(card, d);
+        listEl.appendChild(card);
       });
+    }
+
+    function renderCardView(card, d) {
+      card.innerHTML = '';
+
+      const top = document.createElement('div');
+      top.className = 'delivery-card-top';
+
+      const name = document.createElement('h3');
+      name.className = 'delivery-card-name';
+      name.textContent = d.client_name;
+
+      const editToggle = document.createElement('button');
+      editToggle.className = 'delivery-card-edit-toggle';
+      editToggle.textContent = 'Edit';
+      editToggle.onclick = () => renderCardEdit(card, d);
+
+      top.appendChild(name);
+      top.appendChild(editToggle);
+
+      const stats = document.createElement('div');
+      stats.className = 'delivery-card-stats';
+      [
+        `<strong>${d.file_count}</strong> file${d.file_count === 1 ? '' : 's'}`,
+        `Expires <strong>${formatDate(d.expires_at)}</strong>`,
+        `<strong>${d.download_count}</strong> photo download${d.download_count === 1 ? '' : 's'}`,
+        `<strong>${d.zip_download_count}</strong> zip download${d.zip_download_count === 1 ? '' : 's'}`,
+      ].forEach((html) => {
+        const stat = document.createElement('span');
+        stat.className = 'delivery-stat';
+        stat.innerHTML = html;
+        stats.appendChild(stat);
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'delivery-card-actions';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'delivery-card-btn';
+      copyBtn.textContent = 'Copy Link';
+      copyBtn.onclick = () => copyText(d.download_link, copyBtn);
+
+      const revokeBtn = document.createElement('button');
+      revokeBtn.className = 'delivery-card-btn danger';
+      revokeBtn.textContent = 'Revoke';
+      revokeBtn.onclick = async () => {
+        if (!confirm(`Revoke the link for "${d.client_name}"? This deletes their files immediately.`)) return;
+        revokeBtn.disabled = true;
+        revokeBtn.textContent = 'Revoking…';
+        const revokeRes = await PhantomDelivery.adminFetch(`/api/admin/deliveries/${d.token}/revoke`, { method: 'POST' }).catch(() => null);
+        if (revokeRes && revokeRes.ok) {
+          loadDeliveries();
+        } else {
+          revokeBtn.disabled = false;
+          revokeBtn.textContent = 'Revoke';
+        }
+      };
+
+      actions.appendChild(copyBtn);
+      actions.appendChild(revokeBtn);
+
+      card.appendChild(top);
+      card.appendChild(stats);
+      card.appendChild(actions);
+    }
+
+    function renderCardEdit(card, d) {
+      card.innerHTML = '';
+
+      const form = document.createElement('div');
+      form.className = 'delivery-edit-form';
+
+      const nameField = document.createElement('div');
+      nameField.className = 'delivery-field';
+      const nameLabel = document.createElement('label');
+      nameLabel.textContent = 'Client name';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = d.client_name;
+      nameField.appendChild(nameLabel);
+      nameField.appendChild(nameInput);
+
+      const expiryField = document.createElement('div');
+      expiryField.className = 'delivery-field';
+      const expiryLabel = document.createElement('label');
+      expiryLabel.textContent = 'Expires';
+      const expiryInput = document.createElement('input');
+      expiryInput.type = 'date';
+      expiryInput.value = formatDateInput(d.expires_at);
+      expiryField.appendChild(expiryLabel);
+      expiryField.appendChild(expiryInput);
+
+      const errEl = document.createElement('div');
+      errEl.className = 'delivery-edit-error';
+
+      const actions = document.createElement('div');
+      actions.className = 'delivery-card-actions';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'delivery-card-btn primary';
+      saveBtn.textContent = 'Save';
+      saveBtn.onclick = async () => {
+        const newName = nameInput.value.trim();
+        if (!newName) { errEl.textContent = 'Client name is required.'; return; }
+        if (!expiryInput.value) { errEl.textContent = 'Expiry date is required.'; return; }
+
+        // Keep the existing time-of-day, just move the date — avoids the date
+        // picker's implicit midnight default silently shortening the link.
+        const existing = new Date(d.expires_at * 1000);
+        const [y, m, day] = expiryInput.value.split('-').map(Number);
+        const newExpiry = new Date(y, m - 1, day, existing.getHours(), existing.getMinutes(), existing.getSeconds());
+        const newExpiresAt = Math.floor(newExpiry.getTime() / 1000);
+
+        if (newExpiresAt <= Math.floor(Date.now() / 1000)) {
+          errEl.textContent = 'Expiry must be in the future.';
+          return;
+        }
+
+        errEl.textContent = '';
+        saveBtn.disabled = true;
+        cancelBtn.disabled = true;
+        saveBtn.textContent = 'Saving…';
+
+        const res = await PhantomDelivery.adminFetch(`/api/admin/deliveries/${d.token}/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client_name: newName, expires_at: newExpiresAt }),
+        }).catch(() => null);
+
+        if (res && res.ok) {
+          loadDeliveries();
+        } else {
+          const data = res ? await res.json().catch(() => ({})) : {};
+          errEl.textContent = data.error || 'Could not save changes.';
+          saveBtn.disabled = false;
+          cancelBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+      };
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'delivery-card-btn';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = () => renderCardView(card, d);
+
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+
+      form.appendChild(nameField);
+      form.appendChild(expiryField);
+      form.appendChild(errEl);
+      form.appendChild(actions);
+
+      card.appendChild(form);
     }
   </script>
 </body>

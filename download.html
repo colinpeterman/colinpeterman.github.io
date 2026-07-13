@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=64" />
+  <link rel="stylesheet" href="style.css?v=65" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -254,9 +254,14 @@
       const fetchPromises = new Array(files.length);
       function ensureStarted(i) {
         if (i < files.length && !fetchPromises[i]) {
-          fetchPromises[i] = fetch(PhantomDelivery.WORKER_BASE_URL + files[i].url, { signal: controllers[i].signal });
+          // bulk=1 tells the Worker not to count this toward the individual
+          // per-file download counter — the whole zip click is counted once,
+          // separately, via register-zip-download below.
+          fetchPromises[i] = fetch(`${PhantomDelivery.WORKER_BASE_URL}${files[i].url}?bulk=1`, { signal: controllers[i].signal });
         }
       }
+
+      PhantomDelivery.publicFetch(`/api/download/${encodeURIComponent(token)}/register-zip-download`, { method: 'POST' }).catch(() => {});
 
       try {
         // Built in the browser, not on the server — zipping multi-GB deliveries
