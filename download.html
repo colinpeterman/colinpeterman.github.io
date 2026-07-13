@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Your Photos | Phantom Photos</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="images/favicon/favicon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="style.css?v=56" />
+</head>
+<body class="gallery-page">
+
+  <div data-site-nav></div>
+
+  <div class="delivery-panel" id="loading-state">
+    <h1 class="delivery-heading">Loading&hellip;</h1>
+  </div>
+
+  <div class="delivery-panel" id="error-state" style="display:none;">
+    <h1 class="delivery-heading">Link Unavailable</h1>
+    <p class="delivery-hint" id="error-message">This link has expired or is invalid.</p>
+    <p class="delivery-hint">Contact the photographer if you believe this is a mistake.</p>
+  </div>
+
+  <div id="delivery-wrap" style="display:none;">
+    <div class="delivery-panel">
+      <h1 class="delivery-heading" id="client-heading">Your Photos</h1>
+      <p class="delivery-hint" id="expiry-hint"></p>
+
+      <button class="pw-submit" id="download-all-btn" onclick="downloadAll()">Download All (.zip)</button>
+
+      <div class="delivery-file-list" id="file-list"></div>
+    </div>
+
+    <div data-site-footer></div>
+  </div>
+
+  <script src="site-chrome.js"></script>
+  <script src="delivery.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get('t');
+
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const deliveryWrap = document.getElementById('delivery-wrap');
+
+    function showError(message) {
+      loadingState.style.display = 'none';
+      deliveryWrap.style.display = 'none';
+      errorState.style.display = 'block';
+      if (message) document.getElementById('error-message').textContent = message;
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let i = 0;
+      let n = bytes;
+      while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+      return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
+    }
+
+    function formatExpiry(unixSeconds) {
+      const d = new Date(unixSeconds * 1000);
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    async function init() {
+      if (!token) { showError('No delivery link provided.'); return; }
+
+      let res, data;
+      try {
+        res = await PhantomDelivery.publicFetch(`/api/download/${encodeURIComponent(token)}`);
+        data = await res.json();
+      } catch (err) {
+        showError('Could not reach the delivery server. Please try again later.');
+        return;
+      }
+
+      if (!res.ok) { showError(data.error || 'This link has expired or is invalid.'); return; }
+
+      document.getElementById('client-heading').textContent = `${data.client_name}'s Photos`;
+      document.getElementById('expiry-hint').textContent = `Available until ${formatExpiry(data.expires_at)}`;
+
+      const list = document.getElementById('file-list');
+      list.innerHTML = '';
+      data.files.forEach((file) => {
+        const row = document.createElement('div');
+        row.className = 'delivery-file-row';
+
+        const name = document.createElement('span');
+        name.className = 'delivery-file-name';
+        name.textContent = file.name;
+
+        const size = document.createElement('span');
+        size.className = 'delivery-file-size';
+        size.textContent = formatBytes(file.size);
+
+        const link = document.createElement('a');
+        link.className = 'delivery-file-download';
+        link.href = PhantomDelivery.WORKER_BASE_URL + file.url;
+        link.setAttribute('download', file.name);
+        link.textContent = 'Download';
+
+        row.appendChild(name);
+        row.appendChild(size);
+        row.appendChild(link);
+        list.appendChild(row);
+      });
+
+      window.__zipUrl = PhantomDelivery.WORKER_BASE_URL + data.zip_url;
+
+      loadingState.style.display = 'none';
+      deliveryWrap.style.display = 'block';
+    }
+
+    function downloadAll() {
+      if (!window.__zipUrl) return;
+      const a = document.createElement('a');
+      a.href = window.__zipUrl;
+      a.setAttribute('download', '');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    init();
+  </script>
+</body>
+</html>
