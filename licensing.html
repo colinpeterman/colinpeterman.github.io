@@ -286,6 +286,8 @@
   <script src="gallery.js"></script>
   <script>
     const HASH = 'e94918e0c6efb70bae593a93557e0bfcf78568cac4e51df7d3e5af5759e29b4d';
+    // TEMPORARY password added 2026-07-13. Remove this line to revoke it.
+    const HASH_TEMP = '2276233cdc480265f604ebb626e6ada734c2f91b71ed0bc9a7203b50fbe2b27a';
     const SESSION_KEY = 'pp_licensing_unlocked';
 
     async function sha256(str) {
@@ -312,7 +314,7 @@
       const errEl = document.getElementById('pw-error');
       const hashed = await sha256(input);
 
-      if (hashed === HASH) {
+      if (hashed === HASH || hashed === HASH_TEMP) {
         sessionStorage.setItem(SESSION_KEY, '1');
         errEl.textContent = '';
         document.getElementById('pw-gate').style.opacity = '0';
