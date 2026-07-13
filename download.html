@@ -197,7 +197,11 @@
         document.body.appendChild(a);
         a.click();
         a.remove();
-        URL.revokeObjectURL(url);
+        // Revoking the blob URL right after click() races Safari's disk write
+        // for large files — it can still be saving when the reference dies,
+        // which shows up as a "still being downloaded" / filename "Unknown"
+        // error. Give it a couple minutes before freeing the memory.
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
       } catch (err) {
         controllers.forEach((c) => c.abort());
         alert(`Could not build the zip: ${err.message || err}. Try downloading files individually instead.`);
