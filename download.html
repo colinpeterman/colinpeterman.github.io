@@ -45,6 +45,7 @@
   <script>
     const params = new URLSearchParams(location.search);
     const token = params.get('t');
+    let activeZipUrl = null;
 
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
@@ -190,18 +191,22 @@
         const clientName = (document.getElementById('client-heading').textContent || '').replace(/'s Photos$/, '');
         const safeName = clientName.replace(/[^a-z0-9_\- ]/gi, '_') || 'delivery';
 
-        const url = URL.createObjectURL(blob);
+        // Revoking the blob URL right after click() races Safari's disk write
+        // for large files — it can still be saving when the reference dies,
+        // which shows up as a "still being downloaded" / filename "Unknown"
+        // error. This page only exists to serve one download, so there's no
+        // real reason to revoke at all — the browser reclaims it on navigate
+        // /close. Only clean up the *previous* URL if the button is clicked
+        // again, so repeat clicks don't leak one blob per click forever.
+        if (activeZipUrl) URL.revokeObjectURL(activeZipUrl);
+        activeZipUrl = URL.createObjectURL(blob);
+
         const a = document.createElement('a');
-        a.href = url;
+        a.href = activeZipUrl;
         a.download = `${safeName}.zip`;
         document.body.appendChild(a);
         a.click();
         a.remove();
-        // Revoking the blob URL right after click() races Safari's disk write
-        // for large files — it can still be saving when the reference dies,
-        // which shows up as a "still being downloaded" / filename "Unknown"
-        // error. Give it a couple minutes before freeing the memory.
-        setTimeout(() => URL.revokeObjectURL(url), 120000);
       } catch (err) {
         controllers.forEach((c) => c.abort());
         alert(`Could not build the zip: ${err.message || err}. Try downloading files individually instead.`);
