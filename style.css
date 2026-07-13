@@ -499,7 +499,8 @@ nav {
    but the background photo here makes any gap obvious. */
 #admin-wrap, #delivery-wrap {
   flex-direction: column;
-  min-height: calc(100vh - var(--nav-h));
+  box-sizing: border-box;
+  min-height: 100vh;
   padding-top: calc(var(--nav-h) + 60px);
   padding-bottom: 40px;
 }

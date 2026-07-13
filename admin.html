@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=63" />
+  <link rel="stylesheet" href="style.css?v=64" />
 </head>
 <body class="gallery-page delivery-bg">
 
@@ -100,6 +100,15 @@
       startBtn.disabled = n === 0;
     });
 
+    async function unlockAdmin() {
+      document.getElementById('pw-gate').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('pw-gate').style.display = 'none';
+        document.getElementById('admin-wrap').style.display = 'flex';
+      }, 300);
+      loadDeliveries();
+    }
+
     async function checkAdminKey() {
       const input = document.getElementById('pw-input').value.trim();
       const errEl = document.getElementById('pw-error');
@@ -110,12 +119,7 @@
 
       if (res && res.ok) {
         errEl.textContent = '';
-        document.getElementById('pw-gate').style.opacity = '0';
-        setTimeout(() => {
-          document.getElementById('pw-gate').style.display = 'none';
-          document.getElementById('admin-wrap').style.display = 'flex';
-        }, 300);
-        loadDeliveries();
+        unlockAdmin();
       } else {
         PhantomDelivery.clearAdminKey();
         errEl.textContent = 'Incorrect key or server unreachable. Please try again.';
@@ -123,6 +127,16 @@
         document.getElementById('pw-input').focus();
       }
     }
+
+    (async function tryStoredAdminKey() {
+      if (!PhantomDelivery.getAdminKey()) return;
+      const res = await PhantomDelivery.adminFetch('/api/admin/ping').catch(() => null);
+      if (res && res.ok) {
+        unlockAdmin();
+      } else {
+        PhantomDelivery.clearAdminKey();
+      }
+    })();
 
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
