@@ -328,6 +328,13 @@
       
       function ensureStarted(i) {
         if (i < files.length && !fetchPromises[i]) {
+          // If the target file is a video, do NOT prefetch it in the background!
+          // Only start the fetch when the zip compiler is actively ready to read it.
+          const isVideo = files[i].type && files[i].type.startsWith('video/');
+          if (isVideo && i > currentFileIndex) {
+            console.log(`[QUEUE] Skipping prefetch for Video File #${i + 1} (${files[i].name}) until we reach it.`);
+            return;
+          }
           const targetUrl = `${PhantomDelivery.WORKER_BASE_URL}${files[i].url}?bulk=1`;
           console.log(`[QUEUE] Starting stream for File #${i + 1} (${files[i].name}) at URL: ${targetUrl}`);
           fetchPromises[i] = fetch(targetUrl, { signal: controllers[i].signal });
@@ -348,8 +355,7 @@
         const { downloadZip } = await import('./client-zip.js');
         console.log('[DOWNLOAD] client-zip module loaded successfully.');
 
-        // Initialize only the very first file stream to start the chain.
-        // Lookahead downloads will be evaluated dynamically inside entries().
+        // Initialize the first file
         ensureStarted(0);
 
         async function* entries() {
@@ -359,10 +365,7 @@
             // Guarantee the current target fetch is fully initialized.
             ensureStarted(i);
             
-            // Lookahead prefetching rule:
-            // Only prefetch future files if the current file is NOT a video.
-            // This allows heavy video streams 100% of the TCP multiplex window,
-            // preventing the socket head-of-line blocking that causes Chrome to stall.
+            // Prefetch future files only if the current file is NOT a video.
             const isVideo = files[i].type && files[i].type.startsWith('video/');
             if (!isVideo) {
               const LOOKAHEAD_CONCURRENCY = 4;
