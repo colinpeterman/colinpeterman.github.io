@@ -45,6 +45,69 @@
     <div data-site-footer></div>
   </div>
 
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="File viewer">
+    <button class="lb-close" onclick="closeLightbox()" aria-label="Close">&#x2715;</button>
+    <button class="lb-btn lb-prev" onclick="lbPrev()" aria-label="Previous">&#8249;</button>
+    <div class="lightbox-img-wrap" id="lb-content"></div>
+    <button class="lb-btn lb-next" onclick="lbNext()" aria-label="Next">&#8250;</button>
+    <div class="lb-action-bar">
+      <button class="pw-submit" id="lb-download-btn" onclick="downloadCurrentLightboxFile()">Download</button>
+      <span class="lb-counter" id="lb-counter"></span>
+    </div>
+  </div>
+
+  <style>
+    /* .delivery-bg > *:not(.pw-gate) forces position:relative on direct
+       body children (to layer above the background overlay) — outranks
+       the shared .lightbox { position: fixed } rule by specificity since
+       #lightbox is one of those direct children. Restore it here. */
+    #lightbox { position: fixed; z-index: 9000; }
+    #lightbox .lightbox-img-wrap img { max-height: 78vh; }
+
+    .lb-action-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 9002;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px calc(14px + env(safe-area-inset-bottom, 0px)) 28px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .lb-action-bar .pw-submit { width: auto; padding: 11px 24px; margin-top: 0; }
+    .lb-action-bar .lb-counter {
+      position: static;
+      transform: none;
+      left: auto; bottom: auto;
+      color: rgba(255,255,255,0.45);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+    }
+
+    .lb-video-placeholder {
+      width: 96px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      margin: 0 auto 16px;
+    }
+    .lb-video-name {
+      color: rgba(255,255,255,0.85);
+      font-family: var(--font-cond);
+      font-size: 14px;
+      text-align: center;
+      max-width: 70vw;
+    }
+  </style>
+
   <script src="site-chrome.js"></script>
   <script src="delivery.js"></script>
   <script>
@@ -112,22 +175,26 @@
 
         const isLastCapped = !gridExpanded && i === 3 && files.length > 4;
 
+        tile.href = '#';
         if (isLastCapped) {
-          tile.href = '#';
           tile.onclick = (e) => {
             e.preventDefault();
             gridExpanded = true;
             renderPreviewGrid();
           };
         } else {
-          tile.href = PhantomDelivery.WORKER_BASE_URL + file.url;
-          tile.setAttribute('download', file.name);
+          tile.onclick = (e) => {
+            e.preventDefault();
+            openLightbox(i);
+          };
         }
 
         const isImage = file.type && file.type.startsWith('image/');
         if (isImage) {
           const img = document.createElement('img');
-          img.src = PhantomDelivery.WORKER_BASE_URL + file.url + '?preview=1';
+          img.src = file.thumb_url
+            ? PhantomDelivery.WORKER_BASE_URL + file.thumb_url
+            : PhantomDelivery.WORKER_BASE_URL + file.url + '?preview=1';
           img.alt = file.name;
           img.loading = 'lazy';
           tile.appendChild(img);
@@ -148,6 +215,98 @@
         grid.appendChild(tile);
       });
     }
+
+    let lbCurrentIdx = 0;
+    let lbOpener = null;
+
+    function setLightboxContent(idx) {
+      const files = window.__deliveryFiles || [];
+      const file = files[idx];
+      const wrap = document.getElementById('lb-content');
+      wrap.innerHTML = '';
+
+      const isImage = file.type && file.type.startsWith('image/');
+      if (isImage) {
+        const img = document.createElement('img');
+        img.alt = file.name;
+        img.onload = () => img.classList.add('lb-loaded');
+        img.src = PhantomDelivery.WORKER_BASE_URL + file.url + '?preview=1';
+        wrap.appendChild(img);
+      } else {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'lb-video-placeholder';
+        placeholder.innerHTML = VIDEO_ICON_SVG;
+        const name = document.createElement('p');
+        name.className = 'lb-video-name';
+        name.textContent = file.name;
+        wrap.appendChild(placeholder);
+        wrap.appendChild(name);
+      }
+
+      document.getElementById('lb-counter').textContent = `${idx + 1} / ${files.length}`;
+    }
+
+    function openLightbox(idx) {
+      lbCurrentIdx = idx;
+      lbOpener = document.activeElement;
+      setLightboxContent(idx);
+      const lb = document.getElementById('lightbox');
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      lb.querySelector('.lb-close').focus();
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('lb-content').innerHTML = '';
+      document.body.style.overflow = '';
+      if (lbOpener && typeof lbOpener.focus === 'function') lbOpener.focus();
+      lbOpener = null;
+    }
+
+    function lbPrev() {
+      const files = window.__deliveryFiles || [];
+      lbCurrentIdx = (lbCurrentIdx - 1 + files.length) % files.length;
+      setLightboxContent(lbCurrentIdx);
+    }
+
+    function lbNext() {
+      const files = window.__deliveryFiles || [];
+      lbCurrentIdx = (lbCurrentIdx + 1) % files.length;
+      setLightboxContent(lbCurrentIdx);
+    }
+
+    function downloadCurrentLightboxFile() {
+      const files = window.__deliveryFiles || [];
+      const file = files[lbCurrentIdx];
+      const a = document.createElement('a');
+      a.href = PhantomDelivery.WORKER_BASE_URL + file.url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const lb = document.getElementById('lightbox');
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') lbPrev();
+      if (e.key === 'ArrowRight') lbNext();
+    });
+
+    document.getElementById('lightbox').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeLightbox();
+    });
+
+    let lbTouchStartX = 0;
+    document.getElementById('lightbox').addEventListener('touchstart', (e) => {
+      lbTouchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById('lightbox').addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - lbTouchStartX;
+      if (Math.abs(dx) > 50) dx < 0 ? lbNext() : lbPrev();
+    }, { passive: true });
 
     // FileSystemWritableFileStream.write() has real per-call overhead in
     // Chrome — piping it chunk-by-chunk straight from the network (often

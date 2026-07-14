@@ -142,6 +142,30 @@
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    // Downscaled WebP copy for the download page's preview grid, so clients
+    // aren't pulling multi-MB originals just to render a 150px tile. Best
+    // effort — if generation fails (e.g. HEIC the browser can't decode), the
+    // preview grid just falls back to the full-size image for that file.
+    async function generateThumbnail(file) {
+      if (!file.type || !file.type.startsWith('image/')) return null;
+      try {
+        const bitmap = await createImageBitmap(file);
+        const maxDim = 480;
+        const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+        const w = Math.round(bitmap.width * scale);
+        const h = Math.round(bitmap.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+        bitmap.close();
+        return await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', 0.7));
+      } catch (err) {
+        console.warn(`Thumbnail generation failed for ${file.name}:`, err);
+        return null;
+      }
+    }
+
     async function uploadOneFile(token, file) {
       const urlRes = await PhantomDelivery.adminFetch(
         `/api/admin/deliveries/${token}/upload-url`,
@@ -161,12 +185,38 @@
       });
       if (!putRes.ok) throw new Error(`Upload failed for ${file.name}`);
 
+      let thumbKey = null;
+      const thumbBlob = await generateThumbnail(file);
+      if (thumbBlob) {
+        try {
+          const thumbUrlRes = await PhantomDelivery.adminFetch(
+            `/api/admin/deliveries/${token}/upload-url`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: `_thumbs/${file.name}.webp`, contentType: 'image/webp' }),
+            }
+          );
+          const thumbUrlData = await thumbUrlRes.json();
+          if (thumbUrlRes.ok) {
+            const thumbPutRes = await fetch(thumbUrlData.upload_url, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'image/webp' },
+              body: thumbBlob,
+            });
+            if (thumbPutRes.ok) thumbKey = thumbUrlData.key;
+          }
+        } catch (err) {
+          console.warn(`Thumbnail upload failed for ${file.name}:`, err);
+        }
+      }
+
       const registerRes = await PhantomDelivery.adminFetch(
         `/api/admin/deliveries/${token}/register-file`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: file.name, size: file.size, type: file.type || 'application/octet-stream' }),
+          body: JSON.stringify({ name: file.name, size: file.size, type: file.type || 'application/octet-stream', thumbKey }),
         }
       );
       if (!registerRes.ok) {
