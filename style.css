@@ -727,8 +727,12 @@ nav {
   margin-top: 8px;
 }
 
-.delivery-panel-wide { max-width: 640px; }
-.delivery-panel-full { max-width: 1200px; }
+/* width:100% is needed alongside max-width here — .delivery-panel's auto
+   side-margins (for centering) defeat the flex parent's align-items:stretch,
+   so without an explicit width the panel shrinks to fit its content instead
+   of growing to max-width, which then starves the grid's auto-fill columns. */
+.delivery-panel-wide { width: 100%; max-width: 640px; }
+.delivery-panel-full { width: 100%; max-width: 1200px; }
 
 .delivery-preview-grid {
   display: grid;
