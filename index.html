@@ -216,7 +216,7 @@
       const rows = [[], []];
       baseChips.forEach((chip, i) => rows[i % 2].push(chip));
 
-      function buildRow(sourceChips, dir) {
+      function buildRow(sourceChips, dir, phase) {
         const vw = conveyor.clientWidth;
         const setW = sourceChips.length * CELL;
         // Repeat the set so one half of the track already overflows the
@@ -235,7 +235,11 @@
           }
         }
         track.style.animationName = dir === 'left' ? 'marquee-left' : 'marquee-right';
-        track.style.animationDuration = (halfW / SPEED) + 's';
+        const dur = halfW / SPEED;
+        track.style.animationDuration = dur + 's';
+        // Negative delay starts the animation mid-cycle, so each load begins
+        // at a different point in the loop.
+        track.style.animationDelay = (-phase * dur) + 's';
         row.appendChild(track);
         return row;
       }
@@ -244,8 +248,11 @@
       function build() {
         builtW = conveyor.clientWidth;
         conveyor.innerHTML = '';
-        conveyor.appendChild(buildRow(rows[0], 'left'));
-        conveyor.appendChild(buildRow(rows[1], 'right'));
+        // Random start each load; the second row is pushed 35–65% of a cycle
+        // away from the first so the two rows never read as synced.
+        const phase = Math.random();
+        conveyor.appendChild(buildRow(rows[0], 'left', phase));
+        conveyor.appendChild(buildRow(rows[1], 'right', (phase + 0.35 + Math.random() * 0.3) % 1));
       }
 
       build();
