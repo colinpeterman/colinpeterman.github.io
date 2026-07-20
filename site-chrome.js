@@ -55,8 +55,6 @@
   const footerHTML = `
     <div class="footer-inner">
       <div class="footer-bottom">
-        <span>&copy; ${new Date().getFullYear()} Colin Peterman — Phantom Photos</span>
-        <span>Cincinnati, OH</span>
         ${socialHTML}
       </div>
     </div>`;

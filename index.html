@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=91" />
+  <link rel="stylesheet" href="style.css?v=95" />
 </head>
 <body class="hero-page">
 
@@ -58,9 +58,11 @@
   <!-- TRUSTED BY — logo marquee -->
   <section class="marquee-section" id="clients" aria-label="Clients">
     <p class="marquee-label reveal">Trusted by teams, brands &amp; publications</p>
-    <!-- Two-row logo marquee. These 14 chips are the source set; site JS splits
-         them across two rows and repeats them to build seamless CSS-animated
-         tracks (see the marquee script below and .marquee-track in style.css). -->
+    <!-- Two-row logo marquee. These 14 chips are the source set; each load the
+         site JS shuffles them and deals half to each row (disjoint, so no logo
+         can ever be on screen twice), then repeats each hand into a seamless
+         CSS-animated track (see the marquee script below and .marquee-track in
+         style.css). -->
     <div class="marquee-conveyor reveal" id="logo-conveyor" style="--reveal-delay: 100ms">
       <div class="marquee-chip"><img src="images/clients/nfl.png" class="logo-zoom-sm" alt="NFL" decoding="async" /></div>
       <div class="marquee-chip"><img src="images/clients/HBO_logo.svg" alt="HBO" decoding="async" /></div>
@@ -150,7 +152,7 @@
   <!-- FOOTER (injected by site-chrome.js) -->
   <div data-site-footer></div>
 
-  <script src="site-chrome.js?v=80"></script>
+  <script src="site-chrome.js?v=81"></script>
   <script>
     // ── Hero photo wall ──
     const masonry = document.getElementById('hero-masonry');
@@ -212,9 +214,18 @@
       const CHIP_W = 148, GAP = 28, CELL = CHIP_W + GAP;
       const SPEED = 45; // px/s
 
-      // Alternate logos between the two rows so the rows don't look identical.
-      const rows = [[], []];
-      baseChips.forEach((chip, i) => rows[i % 2].push(chip));
+      // Each load, the logo set is shuffled and dealt into two disjoint hands
+      // (7 top / 7 bottom). Disjoint rows make an on-screen duplicate
+      // impossible at any scroll alignment; the reshuffle means every logo
+      // still rotates through both rows across visits.
+      const shuffle = arr => {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      };
 
       function buildRow(sourceChips, dir, phase) {
         const vw = conveyor.clientWidth;
@@ -249,10 +260,12 @@
         builtW = conveyor.clientWidth;
         conveyor.innerHTML = '';
         // Random start each load; the second row is pushed 35–65% of a cycle
-        // away from the first so the two rows never read as synced.
+        // away from the first so the rows open well out of sync.
         const phase = Math.random();
-        conveyor.appendChild(buildRow(rows[0], 'left', phase));
-        conveyor.appendChild(buildRow(rows[1], 'right', (phase + 0.35 + Math.random() * 0.3) % 1));
+        const deck = shuffle(baseChips);
+        const mid = Math.ceil(deck.length / 2);
+        conveyor.appendChild(buildRow(deck.slice(0, mid), 'left', phase));
+        conveyor.appendChild(buildRow(deck.slice(mid), 'right', (phase + 0.35 + Math.random() * 0.3) % 1));
       }
 
       build();

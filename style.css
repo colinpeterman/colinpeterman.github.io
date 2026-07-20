@@ -341,14 +341,9 @@ nav.menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7.5px) rota
   padding: 26px 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
-}
-.footer-bottom span {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--text-3);
 }
 
 .footer-social {
@@ -373,19 +368,6 @@ nav.menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7.5px) rota
 }
 .footer-social svg { width: 17px; height: 17px; }
 
-@media (max-width: 640px) {
-  /* Stack everything centered: copyright, location, then socials. */
-  .footer-bottom {
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-    gap: 8px;
-  }
-  .footer-bottom .footer-social {
-    justify-content: center;
-    margin-top: 10px;
-  }
-}
 
 /* ========================================
    HOME — HERO
