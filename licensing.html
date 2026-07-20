@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=68" />
+  <link rel="stylesheet" href="style.css?v=91" />
 </head>
 <body class="gallery-page">
 
@@ -58,6 +58,12 @@
 
   <!-- GALLERY (hidden until unlocked) -->
   <div id="gallery-wrap" style="display:none;">
+    <header class="page-head">
+      <div class="wrap">
+        <p class="eyebrow">Collection</p>
+        <h1 class="display">Licensing</h1>
+      </div>
+    </header>
     <div class="masonry-grid" id="gallery"></div>
 
     <div class="gallery-empty" id="empty-state" style="display:none;">
@@ -282,8 +288,8 @@
     }
   </style>
 
-  <script src="site-chrome.js"></script>
-  <script src="gallery.js"></script>
+  <script src="site-chrome.js?v=80"></script>
+  <script src="gallery.js?v=79"></script>
   <script>
     const HASH = 'e94918e0c6efb70bae593a93557e0bfcf78568cac4e51df7d3e5af5759e29b4d';
     // TEMPORARY password added 2026-07-13. Remove this line to revoke it.
@@ -588,6 +594,6 @@
     }, { passive: true });
   </script>
 
-  <script src="contact-modal.js"></script>
+  <script src="contact-modal.js?v=79"></script>
 </body>
 </html>

@@ -31,137 +31,128 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=68" />
-  <style>
-    /* ── Hero Masonry ── */
-    .hero-masonry-wrap {
-      position: relative;
-      width: 100%;
-      height: calc(100vh - var(--nav-h));
-      margin-top: var(--nav-h);
-      overflow: hidden;
-      background: #111;
-    }
-
-    .hero-masonry {
-      columns: 5;
-      column-gap: 0;
-      padding: 0;
-      position: absolute;
-      top: 0; left: 0; right: 0;
-    }
-
-    @media (max-width: 1000px) { .hero-masonry { columns: 4; } }
-    @media (max-width: 680px)  { .hero-masonry { columns: 3; } }
-
-    .hero-masonry-item {
-      break-inside: avoid;
-      margin-bottom: 0;
-      overflow: hidden;
-    }
-
-    .hero-masonry-item img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    /* Whole masonry fades in together */
-    .hero-masonry {
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    }
-    .hero-masonry.ready { opacity: 1; }
-
-    @media (prefers-reduced-motion: reduce) {
-      .hero-masonry { transition: none; }
-      .hero-masonry-item img { transition: none !important; }
-    }
-
-    /* Dark overlay over the masonry */
-    .hero-grid-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.2);
-      z-index: 1;
-    }
-
-    /* Centered name + tagline */
-    .hero-grid-text {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: #fff;
-      padding: 0 24px;
-    }
-
-    .hero-grid-name {
-      font-family: var(--font-disp);
-      font-size: clamp(44px, 12vw, 160px);
-      letter-spacing: 0.06em;
-      line-height: 1;
-      text-transform: uppercase;
-      white-space: nowrap;
-      -webkit-text-stroke: 1px rgba(0,0,0,0.6);
-      paint-order: stroke fill;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.5), -1px -1px 3px rgba(0,0,0,0.5);
-    }
-
-    .hero-grid-sub {
-      font-family: var(--font-cond);
-      font-weight: 600;
-      font-size: clamp(13px, 3.5vw, 22px);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #fff;
-      margin-top: 16px;
-      white-space: nowrap;
-      -webkit-text-stroke: 1px rgba(0,0,0,0.6);
-      paint-order: stroke fill;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.5), -1px -1px 3px rgba(0,0,0,0.5);
-    }
-
-    /* Dark nav always visible */
-    body.hero-page nav {
-      background: var(--bg-dark);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-
-    body.hero-page nav .nav-logo,
-    body.hero-page nav .nav-links a {
-      color: #fff;
-    }
-
-    body.hero-page nav .nav-toggle span {
-      background: #fff;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css?v=91" />
 </head>
 <body class="hero-page">
 
   <!-- NAV (injected by site-chrome.js) -->
   <div data-site-nav></div>
 
-  <!-- HERO MASONRY -->
-  <div class="hero-masonry-wrap">
-    <div class="hero-masonry" id="hero-masonry"></div>
-    <div class="hero-grid-overlay"></div>
-    <div class="hero-grid-text">
-      <h1 class="hero-grid-name">Colin Peterman</h1>
-      <p class="hero-grid-sub">Cincinnati &mdash; Photography &amp; Videography</p>
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-wall" aria-hidden="true">
+      <div class="hero-masonry" id="hero-masonry"></div>
     </div>
-  </div><!-- /hero-masonry-wrap -->
+    <div class="hero-scrim" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <p class="eyebrow hero-eyebrow hero-fade d1">Cincinnati, Ohio &mdash; Photographer &amp; Videographer</p>
+      <h1 class="hero-title">
+        <span class="hero-line"><span>Colin Peterman</span></span>
+      </h1>
+    </div>
+
+    <a class="hero-scroll" href="#clients">Scroll</a>
+  </header>
+
+  <!-- TRUSTED BY — logo marquee -->
+  <section class="marquee-section" id="clients" aria-label="Clients">
+    <p class="marquee-label reveal">Trusted by teams, brands &amp; publications</p>
+    <!-- Two-row logo marquee. These 14 chips are the source set; site JS splits
+         them across two rows and repeats them to build seamless CSS-animated
+         tracks (see the marquee script below and .marquee-track in style.css). -->
+    <div class="marquee-conveyor reveal" id="logo-conveyor" style="--reveal-delay: 100ms">
+      <div class="marquee-chip"><img src="images/clients/nfl.png" class="logo-zoom-sm" alt="NFL" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/HBO_logo.svg" alt="HBO" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/Getty_Images-Logo.wine.png" class="logo-zoom-md" alt="Getty Images" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/cincinnati-bengals-logo-transparent.png" alt="Cincinnati Bengals" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/mls-logo-png-transparent.png" alt="MLS" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/fc-cincinnati-logo-0.png" class="logo-zoom-md" alt="FC Cincinnati" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/Ohio_State_Buckeyes_logo.svg" alt="Ohio State Buckeyes" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/Columbus-Crew-logo.png" alt="Columbus Crew" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/Nationwide-logo.png" alt="Nationwide" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/university_of_cincinnati-logo.png.webp" alt="University of Cincinnati" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/CVG_logo_blue-green.svg.png" alt="CVG Airport" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/western-southern-financial-group-logo.png" class="logo-zoom-sm" alt="Western &amp; Southern Financial Group" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/VisitCincy_Color_dade5aa3-62a8-4a96-97c5-f28203d5ba0e.png" alt="VisitCincy" decoding="async" /></div>
+      <div class="marquee-chip"><img src="images/clients/om_logo_socialmedia.png" alt="Ohio Magazine" decoding="async" /></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="about-split">
+      <div class="about-split-img reveal">
+        <img src="images/about/000117690038.webp" alt="Colin Peterman photographing on location" loading="lazy" decoding="async" />
+      </div>
+      <div class="about-split-text reveal" style="--reveal-delay: 120ms">
+        <p class="eyebrow">About</p>
+        <p>
+          I'm a Cincinnati based photographer and videographer creating cinematic
+          imagery of sports, cityscapes, architecture, and the places that define
+          our region.
+        </p>
+        <p>
+          Since 2019, I've partnered with a variety of organizations to tell stories
+          through imagery. Whether shooting from the ground or the air, my approach
+          combines technical precision with a cinematic eye for composition, delivering
+          visuals that are both memorable and impactful.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section" id="services">
+    <div class="wrap">
+      <p class="section-label reveal">What I shoot</p>
+      <div class="services-grid">
+        <div class="service-card reveal">
+          <div class="service-card-img">
+            <img src="images/sports/CMP00006.webp" alt="Sports and live event coverage" loading="lazy" decoding="async" />
+          </div>
+          <div class="service-card-body">
+            <h3>Sports &amp; Live Events</h3>
+            <p>NFL, MLS, and college sports &mdash; peak action, atmosphere, and the story of the game.</p>
+          </div>
+        </div>
+        <div class="service-card reveal" style="--reveal-delay: 90ms">
+          <div class="service-card-img">
+            <img src="images/main/DJI_0629-HDR-Pano.webp" alt="Aerial and drone photography" loading="lazy" decoding="async" />
+          </div>
+          <div class="service-card-body">
+            <h3>Aerial Imagery</h3>
+            <p>Drone photography, video, and hyperlapses from perspectives only possible above.</p>
+          </div>
+        </div>
+        <div class="service-card reveal" style="--reveal-delay: 180ms">
+          <div class="service-card-img">
+            <img src="images/main/DSC06920.webp" alt="Architecture and cityscape photography" loading="lazy" decoding="async" />
+          </div>
+          <div class="service-card-body">
+            <h3>Architecture &amp; Cityscapes</h3>
+            <p>Skylines and architecture through bold composition, scale, and cinematic light.</p>
+          </div>
+        </div>
+        <div class="service-card reveal" style="--reveal-delay: 270ms">
+          <div class="service-card-img">
+            <img src="images/main/DJI_0726-Enhanced-NR.webp" alt="Commercial and licensing photography" loading="lazy" decoding="async" />
+          </div>
+          <div class="service-card-body">
+            <h3>Commercial &amp; Licensing</h3>
+            <p>Imagery for brands, tourism organizations, editorial publications, and licensing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- FOOTER (injected by site-chrome.js) -->
   <div data-site-footer></div>
 
-  <script src="site-chrome.js"></script>
+  <script src="site-chrome.js?v=80"></script>
   <script>
+    // ── Hero photo wall ──
     const masonry = document.getElementById('hero-masonry');
     let loadedCount = 0;
     let threshold = 20;
@@ -206,6 +197,71 @@
       .catch(() => {
         masonry.classList.add('ready');
       });
+
+    // ── Client logo marquee ──
+    // Two rows, each a track that slides continuously in opposite directions.
+    // The motion is a pure CSS keyframe on transform (see .marquee-track in
+    // style.css), so it runs on the compositor and stays smooth while the page
+    // scrolls. This JS only builds each track: it splits the logos across the
+    // two rows, then repeats the set enough times to (a) span any viewport with
+    // no gaps and (b) form two identical halves so translateX(-50%) loops
+    // seamlessly. Track width sets the duration so speed is constant everywhere.
+    (function () {
+      const conveyor = document.getElementById('logo-conveyor');
+      const baseChips = Array.from(conveyor.children);
+      const CHIP_W = 148, GAP = 28, CELL = CHIP_W + GAP;
+      const SPEED = 45; // px/s
+
+      // Alternate logos between the two rows so the rows don't look identical.
+      const rows = [[], []];
+      baseChips.forEach((chip, i) => rows[i % 2].push(chip));
+
+      function buildRow(sourceChips, dir) {
+        const vw = conveyor.clientWidth;
+        const setW = sourceChips.length * CELL;
+        // Repeat the set so one half of the track already overflows the
+        // viewport — guarantees no gap is ever visible.
+        const reps = Math.max(1, Math.ceil((vw + CELL) / setW));
+        const halfW = reps * setW;
+
+        const row = document.createElement('div');
+        row.className = 'marquee-row';
+        const track = document.createElement('div');
+        track.className = 'marquee-track';
+        // Two identical halves → translateX(-50%) === one half === seamless loop.
+        for (let half = 0; half < 2; half++) {
+          for (let r = 0; r < reps; r++) {
+            sourceChips.forEach(ch => track.appendChild(ch.cloneNode(true)));
+          }
+        }
+        track.style.animationName = dir === 'left' ? 'marquee-left' : 'marquee-right';
+        track.style.animationDuration = (halfW / SPEED) + 's';
+        row.appendChild(track);
+        return row;
+      }
+
+      let builtW = 0;
+      function build() {
+        builtW = conveyor.clientWidth;
+        conveyor.innerHTML = '';
+        conveyor.appendChild(buildRow(rows[0], 'left'));
+        conveyor.appendChild(buildRow(rows[1], 'right'));
+      }
+
+      build();
+
+      // Rebuild on resize so the fill/duration re-fit the new width — but only
+      // when the width actually changed. iOS Safari fires resize when the URL
+      // bar collapses/expands during scroll, and a rebuild restarts both rows
+      // from zero, which reads as a random mid-scroll glitch.
+      let rzTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(rzTimer);
+        rzTimer = setTimeout(() => {
+          if (conveyor.clientWidth !== builtW) build();
+        }, 200);
+      });
+    })();
   </script>
 
   <!-- Game overlay (iframe src is set on first open so the game never loads for regular visitors) -->
@@ -229,6 +285,6 @@
     }
   </script>
 
-  <script src="contact-modal.js"></script>
+  <script src="contact-modal.js?v=79"></script>
 </body>
 </html>
