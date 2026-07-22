@@ -581,6 +581,9 @@ nav.menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7.5px) rota
   display: flex;
   flex-direction: column;
   gap: 18px;
+  width: calc(100% - var(--gutter) * 2);
+  max-width: var(--wrap);
+  margin: 0 auto;
 }
 /* Edge fade via solid-color overlays instead of mask-image: masking a
    container of composited (animated) children flickers on iOS Safari. */
