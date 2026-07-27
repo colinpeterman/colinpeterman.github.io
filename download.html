@@ -145,7 +145,7 @@
 
       if (!res.ok) { showError(data.error || 'This link has expired or is invalid.'); return; }
 
-      document.getElementById('client-heading').textContent = `${data.client_name}'s Photos`;
+      document.getElementById('client-heading').textContent = data.client_name;
       document.getElementById('expiry-hint').textContent = `Available until ${formatExpiry(data.expires_at)}`;
 
       window.__deliveryFiles = data.files;
@@ -453,7 +453,7 @@
         progressText.textContent = `File ${currentFileIndex + 1} of ${files.length} — ${formatBytes(bytesDone)} / ${formatBytes(totalBytes)} (${pct}%)`;
       }
 
-      const clientName = (document.getElementById('client-heading').textContent || '').replace(/'s Photos$/, '');
+      const clientName = document.getElementById('client-heading').textContent || '';
       const safeName = clientName.replace(/[^a-z0-9_\- ]/gi, '_') || 'delivery';
       const filename = `${safeName}.zip`;
 
