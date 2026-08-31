@@ -31,6 +31,8 @@ CONVERT_TO_WEBP = {'.jpg', '.jpeg', '.png'}
 WEBP_QUALITY = 82
 THUMB_MAX = 800
 THUMB_QUALITY = 72
+PREVIEW_MAX = 1600
+PREVIEW_QUALITY = 80
 
 def convert_to_webp(filepath):
     """Convert image to WebP alongside the original. Returns the new filename."""
@@ -74,6 +76,31 @@ def generate_thumbs(source_folder, entries):
             print(f'    Thumbnail {filename} ({orig_kb}KB → {thumb_kb}KB)')
         except Exception as e:
             print(f'    ⚠️  Could not thumbnail {filename}: {e}')
+
+def generate_previews(source_folder, entries):
+    """Create medium 'preview' images (larger than thumbs, smaller than the
+    full-res originals) into a sibling _preview folder. Used by lightboxes on
+    protected galleries so clients can inspect a large view without ever being
+    served the full-resolution deliverable."""
+    if not HAS_PILLOW:
+        return
+    preview_folder = source_folder.rstrip('/').rstrip('\\') + '_preview'
+    os.makedirs(preview_folder, exist_ok=True)
+    for entry in entries:
+        filename = entry['file'] if isinstance(entry, dict) else entry
+        src = os.path.join(source_folder, filename)
+        dst = os.path.join(preview_folder, filename)
+        if os.path.exists(dst):
+            continue
+        try:
+            with Image.open(src) as im:
+                im.thumbnail((PREVIEW_MAX, PREVIEW_MAX), Image.LANCZOS)
+                im.save(dst, 'WEBP', quality=PREVIEW_QUALITY, method=6)
+            orig_kb = os.path.getsize(src) // 1024
+            preview_kb = os.path.getsize(dst) // 1024
+            print(f'    Preview {filename} ({orig_kb}KB → {preview_kb}KB)')
+        except Exception as e:
+            print(f'    ⚠️  Could not preview {filename}: {e}')
 
 def get_dimensions(filepath):
     if not HAS_PILLOW:
@@ -153,6 +180,11 @@ if __name__ == '__main__':
     sports = scan_folder('images/sports', 'data/sports.json')
     write_json('data/sports.json', sports)
     generate_thumbs('images/sports', sports)
+
+    bengals = scan_folder('images/bengals', 'data/bengals.json')
+    write_json('data/bengals.json', bengals)
+    generate_thumbs('images/bengals', bengals)
+    generate_previews('images/bengals', bengals)
 
     licensing = scan_folder('images/licensing', 'data/licensing.json')
     write_json('data/licensing.json', licensing)

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H2D46TFCS3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-H2D46TFCS3');
+  </script>
+  <title>Bengals | Phantom Photos</title>
+  <meta name="description" content="Cincinnati Bengals photography by Colin Peterman." />
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="images/favicon/favicon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-touch-icon.png" />
+  <meta property="og:title" content="Bengals | Phantom Photos" />
+  <meta property="og:description" content="Cincinnati Bengals photography by Colin Peterman." />
+  <meta property="og:image" content="https://www.colinpeterman.com/images/og-image.jpg" />
+  <meta property="og:url" content="https://www.colinpeterman.com/bengals.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bengals | Phantom Photos" />
+  <meta name="twitter:description" content="Cincinnati Bengals photography by Colin Peterman." />
+  <meta name="twitter:image" content="https://www.colinpeterman.com/images/og-image.jpg" />
+  <link rel="canonical" href="https://www.colinpeterman.com/bengals.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="style.css?v=96" />
+  <style>
+    .page-head .page-sub {
+      margin-top: 10px;
+      color: rgba(255,255,255,0.5);
+      font-family: var(--font-cond);
+      font-size: 15px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Uniform grid — all tiles share one aspect ratio so rows align cleanly.
+       12 photos fill 4 / 3 / 2 columns with no ragged trailing gaps. */
+    #gallery.uniform-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 0 10px 10px;
+    }
+    @media (max-width: 1000px) { #gallery.uniform-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 680px)  { #gallery.uniform-grid { grid-template-columns: repeat(2, 1fr); } }
+    #gallery.uniform-grid .masonry-item {
+      margin: 0;
+      aspect-ratio: 4 / 3;
+    }
+    #gallery.uniform-grid .masonry-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body class="gallery-page">
+
+  <!-- NAV (injected by site-chrome.js) -->
+  <div data-site-nav></div>
+
+  <!-- PAGE HEAD -->
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow reveal">Portfolio</p>
+      <h1 class="display reveal" style="--reveal-delay: 80ms">Bengals</h1>
+      <p class="page-sub reveal" style="--reveal-delay: 140ms">Tap any photo to view it larger.</p>
+    </div>
+  </header>
+
+  <!-- MASONRY GALLERY -->
+  <div class="masonry-grid uniform-grid" id="gallery"></div>
+
+  <!-- EMPTY STATE (shown when folder is empty) -->
+  <div class="gallery-empty" id="empty-state" style="display:none;">
+    <h2>No Photos Yet</h2>
+    <p>Add your images to the <code>images/bengals/</code> folder<br>and update <code>data/bengals.json</code></p>
+  </div>
+
+  <!-- GALLERY FOOTER (injected by site-chrome.js) -->
+  <div data-site-footer></div>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button class="lb-close" onclick="closeLightbox()" aria-label="Close">&#x2715;</button>
+    <button class="lb-btn lb-prev" onclick="lbPrev()" aria-label="Previous">&#8249;</button>
+    <div class="lightbox-img-wrap">
+      <img id="lb-img" src="" alt="Photo" />
+    </div>
+    <button class="lb-btn lb-next" onclick="lbNext()" aria-label="Next">&#8250;</button>
+    <span class="lb-counter" id="lb-counter"></span>
+  </div>
+
+  <script src="site-chrome.js?v=81"></script>
+  <script src="gallery.js?v=79"></script>
+  <script>
+    let photos = [];
+    let currentIdx = 0;
+
+    // Load photos from JSON manifest
+    fetch('data/bengals.json')
+      .then(r => r.ok ? r.json() : [])
+      .then(list => {
+        for (let i = list.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [list[i], list[j]] = [list[j], list[i]];
+        }
+        photos = list;
+        if (!photos.length) {
+          document.getElementById('empty-state').style.display = 'block';
+          return;
+        }
+        renderGallery();
+      })
+      .catch(() => {
+        document.getElementById('empty-state').style.display = 'block';
+      });
+
+    function renderGallery() {
+      const grid = document.getElementById('gallery');
+      grid.innerHTML = '';
+
+      photos.forEach((photo, i) => {
+        const filename = photo.file || photo;
+        const item = document.createElement('div');
+        item.className = 'masonry-item';
+        item.style.cursor = 'pointer';
+        item.onclick = () => openLightbox(i);
+        // Keyboard access — items are divs, so make them focusable + Enter/Space activatable
+        item.tabIndex = 0;
+        item.setAttribute('role', 'button');
+        item.setAttribute('aria-label', `View photo ${i + 1} larger`);
+        item.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openLightbox(i);
+          }
+        });
+
+        // Aspect ratio is fixed by the uniform grid CSS (4/3); no per-item ratio.
+
+        const img = document.createElement('img');
+        img.alt = `Bengals photo ${i + 1}`;
+        img.className = 'lazy';
+        img.dataset.src = `images/bengals_thumbs/${filename}`;
+
+        item.appendChild(img);
+        grid.appendChild(item);
+      });
+
+      grid.classList.add('ready');
+      loadGalleryRows(grid);
+    }
+
+    // Lightbox — serves the medium 'preview' size (not the full-res original)
+    function setLightboxImage(idx) {
+      const img = document.getElementById('lb-img');
+      img.classList.remove('lb-loaded');
+      img.onload = () => img.classList.add('lb-loaded');
+      img.src = `images/bengals_preview/${photos[idx].file || photos[idx]}`;
+    }
+
+    let lbOpener = null;
+
+    function openLightbox(idx) {
+      currentIdx = idx;
+      setLightboxImage(idx);
+      const lb = document.getElementById('lightbox');
+      lbOpener = document.activeElement;
+      lb.classList.add('open');
+      updateCounter();
+      document.body.style.overflow = 'hidden';
+      lb.querySelector('.lb-close').focus();
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+      document.getElementById('lb-img').src = '';
+      document.body.style.overflow = '';
+      if (lbOpener && typeof lbOpener.focus === 'function') lbOpener.focus();
+      lbOpener = null;
+    }
+
+    function lbPrev() {
+      currentIdx = (currentIdx - 1 + photos.length) % photos.length;
+      setLightboxImage(currentIdx);
+      updateCounter();
+    }
+
+    function lbNext() {
+      currentIdx = (currentIdx + 1) % photos.length;
+      setLightboxImage(currentIdx);
+      updateCounter();
+    }
+
+    function updateCounter() {
+      document.getElementById('lb-counter').textContent =
+        `${currentIdx + 1} / ${photos.length}`;
+    }
+
+    // Keyboard nav + focus trap while the lightbox is open
+    document.addEventListener('keydown', e => {
+      const lb = document.getElementById('lightbox');
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft')  lbPrev();
+      if (e.key === 'ArrowRight') lbNext();
+      if (e.key === 'Tab') {
+        const focusables = Array.from(lb.querySelectorAll('button'));
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        } else if (!lb.contains(document.activeElement)) {
+          e.preventDefault(); first.focus();
+        }
+      }
+    });
+
+    // Click backdrop to close
+    document.getElementById('lightbox').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeLightbox();
+    });
+
+    // Swipe gestures
+    let touchStartX = 0;
+    const lb = document.getElementById('lightbox');
+    lb.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) dx < 0 ? lbNext() : lbPrev();
+    }, { passive: true });
+
+    // Block right-click / save on gallery + lightbox images
+    document.getElementById('gallery').addEventListener('contextmenu', e => e.preventDefault());
+    document.getElementById('lightbox').addEventListener('contextmenu', e => e.preventDefault());
+  </script>
+
+  <script src="contact-modal.js?v=79"></script>
+</body>
+</html>

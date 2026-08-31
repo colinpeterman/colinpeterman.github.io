@@ -24,6 +24,7 @@
       ${link('/', 'Home')}
       <li><a href="/#about" onclick="closeNav()">About</a></li>
       ${link('/sports.html', 'Sports')}
+      ${link('/bengals.html', 'Bengals')}
       ${link('/licensing.html', 'Licensing')}
       <li><a href="#" class="nav-cta" onclick="closeNav();openContactModal();return false;">Contact</a></li>
     </ul>`;
