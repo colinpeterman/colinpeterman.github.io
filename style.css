@@ -574,17 +574,36 @@ nav.menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7.5px) rota
   margin-bottom: 36px;
 }
 
+/* Hairlines either side of the ribbon's label */
+.marquee-section .marquee-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.marquee-section .marquee-label::before,
+.marquee-section .marquee-label::after {
+  content: '';
+  width: 40px;
+  height: 1px;
+  background: var(--line-strong);
+}
+/* The label wraps on phones — drop the hairlines rather than squeeze them */
+@media (max-width: 600px) {
+  .marquee-section .marquee-label::before,
+  .marquee-section .marquee-label::after { display: none; }
+}
+
 .marquee-conveyor {
   position: relative;
   overflow: hidden;
-  height: 170px; /* two 76px rows + 18px gap */
+  height: 64px;
   display: flex;
-  flex-direction: column;
-  gap: 18px;
-  width: calc(100% - var(--gutter) * 2);
-  max-width: var(--wrap);
-  margin: 0 auto;
+  align-items: center;
 }
+/* The <img>s in the markup are only the source set; the script builds the
+   real track from trimmed copies. Hide them so nothing flashes pre-build. */
+.marquee-conveyor > img { display: none; }
 /* Edge fade via solid-color overlays instead of mask-image: masking a
    container of composited (animated) children flickers on iOS Safari. */
 .marquee-conveyor::before,
@@ -592,64 +611,49 @@ nav.menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7.5px) rota
   content: '';
   position: absolute;
   top: 0; bottom: 0;
-  width: 9%;
+  width: 12%;
   z-index: 1;
   pointer-events: none;
 }
 .marquee-conveyor::before { left: 0;  background: linear-gradient(to right, var(--bg), transparent); }
 .marquee-conveyor::after  { right: 0; background: linear-gradient(to left,  var(--bg), transparent); }
 
-/* Each row holds one continuously translating track. The animation is a pure
-   CSS keyframe on transform, so it runs on the compositor thread and stays
-   smooth even while the main thread is busy handling scroll. The track is two
-   identical halves; translateX(-50%) advances exactly one half, so it loops
-   seamlessly. (Chip count / spacing is built in JS to fill any width.) */
-.marquee-row {
-  overflow: hidden;
-  height: 76px;
-}
+/* One continuously translating track. The animation is a pure CSS keyframe on
+   transform, so it runs on the compositor thread and stays smooth even while
+   the main thread is busy handling scroll. The track is two identical halves;
+   translateX(-50%) advances exactly one half, so it loops seamlessly. (Logo
+   count / sizing is built in JS to fill any width.) */
 .marquee-track {
   display: flex;
+  align-items: center;
   width: max-content;
   will-change: transform;
+  animation-name: marquee-left;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
-/* Spacing lives on the chip, not flex gap: with gap there is no space after
-   the last chip, so the track is 28px narrower than 2× half — and the
-   translateX(-50%) loop lands 14px short, producing a visible snap on wrap.
-   A uniform right margin keeps the track width an exact multiple of the cell. */
-.marquee-track .marquee-chip { margin-right: 28px; }
 
 @keyframes marquee-left {
   from { transform: translate3d(0, 0, 0); }
   to   { transform: translate3d(-50%, 0, 0); }
 }
-@keyframes marquee-right {
-  from { transform: translate3d(-50%, 0, 0); }
-  to   { transform: translate3d(0, 0, 0); }
-}
 
-.marquee-chip {
+/* Spacing lives on the logo, not flex gap: with gap there is no space after
+   the last logo, so the track is one gap short of 2× half and the -50% loop
+   snaps on wrap. A uniform right margin keeps the halves exactly equal. */
+.marquee-logo {
   flex: 0 0 auto;
-  width: 148px;
-  height: 76px;
-  background: #fff;
-  border-radius: var(--r-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+  display: block;
+  width: auto;
+  margin-right: clamp(56px, 7vw, 110px);
+  opacity: 0.6;
+  transition: opacity 0.3s;
 }
-.marquee-chip img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.marquee-chip img.logo-zoom-xl { transform: scale(1.9); }
-.marquee-chip img.logo-zoom-lg { transform: scale(1.5); }
-.marquee-chip img.logo-zoom-md { transform: scale(1.25); }
-.marquee-chip img.logo-zoom-sm { transform: scale(1.15); }
+.marquee-logo:hover { opacity: 1; }
+/* Mono treatments, picked per logo via data-tone in index.html */
+.marquee-logo.tone-sil  { filter: brightness(0) invert(1); }
+.marquee-logo.tone-gray { filter: grayscale(1) brightness(1.5); }
+.marquee-logo.tone-inv  { filter: grayscale(1) invert(1); mix-blend-mode: screen; }
 
 /* ========================================
    HOME — SERVICES

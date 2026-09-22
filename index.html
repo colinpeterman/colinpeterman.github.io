@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="style.css?v=96" />
+  <link rel="stylesheet" href="style.css?v=97" />
 </head>
 <body class="hero-page">
 
@@ -64,31 +64,33 @@
     <a class="hero-scroll" href="#clients">Scroll</a>
   </header>
 
-  <!-- TRUSTED BY — logo marquee -->
+  <!-- TRUSTED BY — logo ribbon -->
   <section class="marquee-section" id="clients" aria-label="Clients">
     <p class="marquee-label reveal">Trusted by teams, brands &amp; publications</p>
-    <!-- Two-row logo marquee. These 14 chips are the source set; each load the
-         site JS shuffles them and deals half to each row (disjoint, so no logo
-         can ever be on screen twice), then repeats each hand into a seamless
-         CSS-animated track (see the marquee script below and .marquee-track in
-         style.css). -->
+    <!-- One slow row of chipless, monochrome logos. These imgs are the source
+         set; the ribbon script below trims each file's empty padding, sizes
+         them to an even visual weight, shuffles them and repeats them into a
+         seamless CSS-animated track (see .marquee-track in style.css).
+         data-tone picks the mono filter that keeps that logo legible on dark:
+         sil = solid white silhouette, gray = greyscale with detail kept,
+         inv = inverted greyscale (for logos drawn dark on light). -->
     <div class="marquee-conveyor reveal" id="logo-conveyor" style="--reveal-delay: 100ms">
-      <div class="marquee-chip"><img src="images/clients/nfl.png" class="logo-zoom-sm" alt="NFL" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/HBO_logo.svg" alt="HBO" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/Getty_Images-Logo.wine.png" class="logo-zoom-md" alt="Getty Images" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/cincinnati-bengals-logo-transparent.png" alt="Cincinnati Bengals" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/mls-logo-png-transparent.png" alt="MLS" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/fc-cincinnati-logo-0.png" class="logo-zoom-md" alt="FC Cincinnati" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/Ohio_State_Buckeyes_logo.svg" alt="Ohio State Buckeyes" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/Columbus-Crew-logo.png" alt="Columbus Crew" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/Nationwide-logo.png" alt="Nationwide" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/university_of_cincinnati-logo.png.webp" alt="University of Cincinnati" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/CVG_logo_blue-green.svg.png" alt="CVG Airport" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/western-southern-financial-group-logo.png" class="logo-zoom-sm" alt="Western &amp; Southern Financial Group" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/VisitCincy_Color_dade5aa3-62a8-4a96-97c5-f28203d5ba0e.png" alt="VisitCincy" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/om_logo_socialmedia.png" alt="Ohio Magazine" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/cincinnati-reds-logo-transparent.png" alt="Cincinnati Reds" decoding="async" /></div>
-      <div class="marquee-chip"><img src="images/clients/xavier.png" class="logo-zoom-md" alt="Xavier University" decoding="async" /></div>
+      <img src="images/clients/nfl.png" data-tone="inv" alt="NFL" />
+      <img src="images/clients/HBO_logo.svg" data-tone="sil" alt="HBO" />
+      <img src="images/clients/Getty_Images-Logo.wine.png" data-tone="sil" alt="Getty Images" />
+      <img src="images/clients/cincinnati-bengals-logo-transparent.png" data-tone="gray" alt="Cincinnati Bengals" />
+      <img src="images/clients/mls-logo-png-transparent.png" data-tone="inv" alt="MLS" />
+      <img src="images/clients/fc-cincinnati-logo-0.png" data-tone="gray" alt="FC Cincinnati" />
+      <img src="images/clients/Ohio_State_Buckeyes_logo.svg" data-tone="sil" alt="Ohio State Buckeyes" />
+      <img src="images/clients/Columbus-Crew-logo.png" data-tone="gray" alt="Columbus Crew" />
+      <img src="images/clients/Nationwide-logo.png" data-tone="sil" alt="Nationwide" />
+      <img src="images/clients/university_of_cincinnati-logo.png.webp" data-tone="sil" alt="University of Cincinnati" />
+      <img src="images/clients/CVG_logo_blue-green.svg.png" data-tone="sil" alt="CVG Airport" />
+      <img src="images/clients/western-southern-financial-group-logo.png" data-tone="inv" alt="Western &amp; Southern Financial Group" />
+      <img src="images/clients/VisitCincy_Color_dade5aa3-62a8-4a96-97c5-f28203d5ba0e.png" data-tone="sil" alt="VisitCincy" />
+      <img src="images/clients/om_logo_socialmedia.png" data-tone="sil" alt="Ohio Magazine" />
+      <img src="images/clients/cincinnati-reds-logo-transparent.png" data-tone="inv" alt="Cincinnati Reds" />
+      <img src="images/clients/xavier.png" data-tone="sil" alt="Xavier University" />
     </div>
   </section>
 
@@ -211,24 +213,52 @@
         masonry.classList.add('ready');
       });
 
-    // ── Client logo marquee ──
-    // Two rows, each a track that slides continuously in opposite directions.
-    // The motion is a pure CSS keyframe on transform (see .marquee-track in
-    // style.css), so it runs on the compositor and stays smooth while the page
-    // scrolls. This JS only builds each track: it splits the logos across the
-    // two rows, then repeats the set enough times to (a) span any viewport with
-    // no gaps and (b) form two identical halves so translateX(-50%) loops
-    // seamlessly. Track width sets the duration so speed is constant everywhere.
+    // ── Client logo ribbon ──
+    // One row sliding continuously left. The motion is a pure CSS keyframe on
+    // transform (see .marquee-track in style.css), so it runs on the compositor
+    // and stays smooth while the page scrolls. This JS only builds the track.
     (function () {
       const conveyor = document.getElementById('logo-conveyor');
-      const baseChips = Array.from(conveyor.children);
-      const CHIP_W = 148, GAP = 28, CELL = CHIP_W + GAP;
-      const SPEED = 45; // px/s
+      const sources = Array.from(conveyor.querySelectorAll('img'));
+      const BASE = 40;  // px — target height of a square logo
+      const SPEED = 30; // px/s
+      const MAX_SIDE = 400;
 
-      // Each load, the logo set is shuffled and dealt into two disjoint hands
-      // (7 top / 7 bottom). Disjoint rows make an on-screen duplicate
-      // impossible at any scroll alignment; the reshuffle means every logo
-      // still rotates through both rows across visits.
+      // The logo files have wildly different amounts of empty padding, so each
+      // is trimmed to its visible pixels on a canvas (downscaled first — only
+      // the bounding box matters). Logos without transparency (e.g. NFL on
+      // white) are trimmed by near-white pixels instead.
+      function trim(src) {
+        return new Promise(resolve => {
+          const im = new Image();
+          im.onload = () => {
+            const k = Math.min(1, MAX_SIDE / Math.max(im.naturalWidth || MAX_SIDE, im.naturalHeight || MAX_SIDE));
+            const W = Math.round((im.naturalWidth || MAX_SIDE) * k), H = Math.round((im.naturalHeight || MAX_SIDE) * k);
+            const c = document.createElement('canvas');
+            c.width = W; c.height = H;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(im, 0, 0, W, H);
+            let d;
+            try { d = ctx.getImageData(0, 0, W, H).data; } catch (e) { return resolve({ url: src, ar: W / H }); }
+            let opaque = true;
+            for (let i = 3; i < d.length; i += 400) if (d[i] < 250) { opaque = false; break; }
+            const on = i => opaque ? d[i] + d[i + 1] + d[i + 2] < 700 : d[i + 3] > 12;
+            let x0 = W, y0 = H, x1 = -1, y1 = -1;
+            for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+              if (on((y * W + x) * 4)) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+            }
+            if (x1 < x0) return resolve({ url: src, ar: W / H });
+            const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+            const out = document.createElement('canvas');
+            out.width = cw; out.height = ch;
+            out.getContext('2d').drawImage(c, x0, y0, cw, ch, 0, 0, cw, ch);
+            resolve({ url: out.toDataURL(), ar: cw / ch });
+          };
+          im.onerror = () => resolve({ url: src, ar: 1 });
+          im.src = src;
+        });
+      }
+
       const shuffle = arr => {
         const a = arr.slice();
         for (let i = a.length - 1; i > 0; i--) {
@@ -238,58 +268,45 @@
         return a;
       };
 
-      function buildRow(sourceChips, dir, phase) {
-        const vw = conveyor.clientWidth;
-        const setW = sourceChips.length * CELL;
-        // Repeat the set so one half of the track already overflows the
-        // viewport — guarantees no gap is ever visible.
-        const reps = Math.max(1, Math.ceil((vw + CELL) / setW));
-        const halfW = reps * setW;
-
-        const row = document.createElement('div');
-        row.className = 'marquee-row';
-        const track = document.createElement('div');
-        track.className = 'marquee-track';
-        // Two identical halves → translateX(-50%) === one half === seamless loop.
-        for (let half = 0; half < 2; half++) {
-          for (let r = 0; r < reps; r++) {
-            sourceChips.forEach(ch => track.appendChild(ch.cloneNode(true)));
-          }
-        }
-        track.style.animationName = dir === 'left' ? 'marquee-left' : 'marquee-right';
-        const dur = halfW / SPEED;
-        track.style.animationDuration = dur + 's';
-        // Negative delay starts the animation mid-cycle, so each load begins
-        // at a different point in the loop.
-        track.style.animationDelay = (-phase * dur) + 's';
-        row.appendChild(track);
-        return row;
-      }
-
+      let logos = [];
       let builtW = 0;
       function build() {
         builtW = conveyor.clientWidth;
+        const track = document.createElement('div');
+        track.className = 'marquee-track';
+        // Equal visual area: wide wordmarks get shorter, square badges taller.
+        const one = logos.map(l => {
+          const h = Math.round(Math.min(BASE * 1.35, Math.max(BASE * 0.5, BASE * 1.25 / Math.sqrt(l.ar))));
+          return `<img class="marquee-logo tone-${l.tone}" src="${l.url}" alt="${l.alt}" style="height:${h}px" decoding="async" />`;
+        }).join('');
+        track.innerHTML = one;
         conveyor.innerHTML = '';
-        // Random start each load; the second row is pushed 35–65% of a cycle
-        // away from the first so the rows open well out of sync.
-        const phase = Math.random();
-        const deck = shuffle(baseChips);
-        const mid = Math.ceil(deck.length / 2);
-        conveyor.appendChild(buildRow(deck.slice(0, mid), 'left', phase));
-        conveyor.appendChild(buildRow(deck.slice(mid), 'right', (phase + 0.35 + Math.random() * 0.3) % 1));
+        conveyor.appendChild(track);
+        // Repeat the set so one half already overflows the viewport, then
+        // double it: translateX(-50%) === one half === seamless loop.
+        const setW = track.scrollWidth;
+        const reps = Math.max(1, Math.ceil((builtW + 200) / setW));
+        track.innerHTML = one.repeat(reps * 2);
+        const dur = (reps * setW) / SPEED;
+        track.style.animationDuration = dur + 's';
+        // Negative delay starts mid-cycle, so each load opens somewhere new.
+        track.style.animationDelay = (-Math.random() * dur) + 's';
+        conveyor.classList.add('ready');
       }
 
-      build();
+      Promise.all(shuffle(sources).map(img =>
+        trim(img.getAttribute('src')).then(r => ({ ...r, alt: img.alt, tone: img.dataset.tone }))
+      )).then(list => { logos = list; build(); });
 
       // Rebuild on resize so the fill/duration re-fit the new width — but only
       // when the width actually changed. iOS Safari fires resize when the URL
-      // bar collapses/expands during scroll, and a rebuild restarts both rows
+      // bar collapses/expands during scroll, and a rebuild restarts the row
       // from zero, which reads as a random mid-scroll glitch.
       let rzTimer;
       window.addEventListener('resize', () => {
         clearTimeout(rzTimer);
         rzTimer = setTimeout(() => {
-          if (conveyor.clientWidth !== builtW) build();
+          if (logos.length && conveyor.clientWidth !== builtW) build();
         }, 200);
       });
     })();
